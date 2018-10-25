@@ -37,6 +37,9 @@ function preprocessImaging(tifFile, daqData, daqTime)
     fprintf('Reading %s \n', tifFileName);
 
     unalignedSeries = imgData.data();
+    
+    % number of frames in time series
+    numFrames = size(unalignedSeries, 3);
 
     % get metadata
     metadata = imgData.metadata();
@@ -70,12 +73,35 @@ function preprocessImaging(tifFile, daqData, daqTime)
 
     % extract frame times
     frameStarts = find(diff(daqData.scanimageFrameClock) > 0.1);
-    frameChanges = ;
+    frameEnds = find(diff(daqData.scanimageFrameClock) < -0.1);
     
+    frameTimingError = 0; % flag for timing error
+    % should capture all frame starts and ends, so equal number
+    if (length(frameStarts) ~= length(frameEnds))
+        fprintf(['Unexpected ScanImage Frame Clock values for %s. \n'...
+            'Number of frame starts and ends not equal.'], tifFileName);
+        frameTimingError = 1;
+    % after stop signal in middle of frame, takes time to stop, extra
+    %  transition in frame clock; to be expected
+    elseif (length(frameStarts) - 1 == numFrames)
+        frameStarts = frameStarts(1:(end-1));
+        frameEnds = frameEnds(1:(end-1));
+    % if number of frames as indicated by frameStarts is not equal to the
+    %  number of frames in the time series and also isn't the number of
+    %  frames in the time series plus 1 (as above), then something is wrong
+    %  in getting frame timing or in imaging file
+    elseif (length(frameStarts) ~= numFrames)
+        fprintf(['Number of frames in time series does not match '...
+            'ScanImage Frame Clock values for %s.'], tifFileName);
+        frameTimingError = 1;
+    end
+    
+    frameStartTimes = daqTime(frameStarts + 1);
+    frameEndTimes = daqTime(frameEnds + 1);
 
     % save time series data
-    save('imDat.mat', 'unalignedSeries', ...
-        'alignedSeries', 'meanImageAligned', ...
-        'trialPath', 'tifFileName', '-v7.3');
+    save('imDat.mat', 'unalignedSeries', 'alignedSeries', ...
+        'meanImageAligned', 'trialPath', 'tifFileName', ...
+        'frameStartTimes', 'frameEndTimes', 'frameTimingError', '-v7.3');
                 
 end
