@@ -93,8 +93,8 @@ function preprocess()
                         %  trialPath
                         preprocessImaging(tifFile, daqData, daqTime);
                     else
-                        fprintf(['Warning: Imaging data expected, but no '...
-                            '.tif file found for:/n %s'], trialPath);
+                        fprintf(['Warning: Imaging data expected, but '
+                            'no .tif file found for:/n %s'], trialPath);
                     end
                 end
                 
