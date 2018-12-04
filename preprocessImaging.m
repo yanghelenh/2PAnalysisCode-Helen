@@ -6,8 +6,8 @@
 %  output by ScanImage. 
 %
 % NOTE: assumes that trial folder has only one .tif file, which is the
-%  Scanimage .tif file. Also, note numRefFrames parameter for alignment at
-%  top of function.
+%  Scanimage .tif file. Also, note NUM_REF_FRAMES parameter for alignment
+%  at top of function.
 %
 % INPUTS:
 %   tifFile - struct of info about the .tif file, output of dir()
@@ -26,7 +26,7 @@
 
 function preprocessImaging(tifFile, daqData, daqTime)
 
-    numRefFrames = 30; % default to 30 reference frames for alignment
+    NUM_REF_FRAMES = 30; % default to 30 reference frames for alignment
 
     tifFileName = tifFile.name;
 
@@ -59,7 +59,7 @@ function preprocessImaging(tifFile, daqData, daqTime)
 
     % Create reference frame for image alignment 
     % reference stack using first numRefFrames frames 
-    refStack = unalignedSeries(:,:,1:numRefFrames); 
+    refStack = unalignedSeries(:,:,1:NUM_REF_FRAMES); 
     % max intensity projection of ref stack.
     refFrame = max(refStack, [], 3); 
 

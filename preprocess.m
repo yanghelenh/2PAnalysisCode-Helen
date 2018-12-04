@@ -16,7 +16,7 @@
 % .tif file
 %
 % CREATED: 10/3/18 HHY
-% UPDATED: 10/25/18 HHY 
+% UPDATED: 12/4/18 HHY 
 %
 function preprocess()
 
@@ -82,13 +82,14 @@ function preprocess()
                     rawData, rawOutput, settings, sprdshtPath, exptName);
                 
                 
-                %% if this experiment has imaging data
+                % if this experiment has imaging data
                 if (contains(exptCond, 'Img'))
                     % name of ScanImage Tiff
                     tifFile = dir([trialPath filesep '*.tif']);
 
                     % only if imaging data exists
                     if ~isempty(tifFile)
+                        disp('Preprocessing imaging data');
                         % align imaging data, save that and metadata in
                         %  trialPath
                         preprocessImaging(tifFile, daqData, daqTime);
@@ -98,14 +99,19 @@ function preprocess()
                     end
                 end
                 
-                %% if this experiment has FicTrac data
+                % if this experiment has FicTrac data
                 if (contains(exptCond, 'Fictrac'))
                     % Process FicTrac data
+                    disp('Preprocessing FicTrac data');
+                    preprocessFicTrac(daqData, daqTime, ...
+                        settings.bob.sampRate);
                 end
                 
-                %% if this experiment has leg tracking data
+                % if this experiment has leg tracking data
                 if (contains(exptCond, 'leg'))
                     % Process leg data
+                    disp('Preprocessing leg video data');
+                    preprocessLegVid(daqData, daqOutput, daqTime);  
                 end
                 
             end
