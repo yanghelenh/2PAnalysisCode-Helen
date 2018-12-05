@@ -8,7 +8,7 @@
 %  the signal resets (0->10 volts or 10 volts -> 0 transistions). Then the
 %  signal will be further CLEANED to remove extra position values 
 %  surrounding those signal reset time points. Then the position signal is 
-%  LOW PASS FILTERED two times!! to remove noise/ 50Hz sampling of fictrac.
+%  LOW PASS FILTERED two times!! to remove noise/ sampling of fictrac.
 %  Then the velocity of the ball with be solved for in degree/s by using 
 %  the gradient function, and taking into consideration the sample rate the
 %  data was collected at. Velocity values above what a resonable fly would 

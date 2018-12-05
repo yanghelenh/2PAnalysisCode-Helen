@@ -20,27 +20,27 @@
 
 function [out] = replaceValuesOutsideThresholdBound(data, THRESHOLD_BOUND)
 
-% TODO: add in buffered region around this value that should be removed. 
+    % TODO: add in buffered region around this value that should be removed 
 
-% if abs value of data above threshold set to NaN
-data ( abs (data) > THRESHOLD_BOUND) = NaN;
+    % if abs value of data above threshold set to NaN
+    data ( abs (data) > THRESHOLD_BOUND) = NaN;
 
-% check that first value in array in not Nan
-if( isnan (data(1)) )
-    data(1) = 0; % set first value to zero if it was Nan
-end
+    % check that first value in array in not Nan
+    if( isnan (data(1)) )
+        data(1) = 0; % set first value to zero if it was Nan
+    end
 
-% replace Nan with proceding value
-nanIDX = find( isnan(data) );
+    % replace Nan with proceding value
+    nanIDX = find( isnan(data) );
 
-while(~isempty(nanIDX))
-    data(nanIDX) = data(nanIDX - 1);
-    
-    % find any remaining NaN
-    nanIDX  = find( isnan(data) );
-end
+    while(~isempty(nanIDX))
+        data(nanIDX) = data(nanIDX - 1);
+
+        % find any remaining NaN
+        nanIDX  = find( isnan(data) );
+    end
 
 
-out = data;
+    out = data;
 end
 

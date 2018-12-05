@@ -25,12 +25,12 @@
 %   None, but saves data in fictracDat.mat in pwd.
 %
 % CREATED: 12/3/18 HHY
-% UPDATED: 12/3/18 HHY
+% UPDATED: 12/4/18 HHY
 %
 
 function preprocessFicTrac(daqData, daqTime, sampRate)
     % constants
-    LOWPASS_FILTER_CUTOFF = 80; % in Hz (approximate FicTrac sample rate)
+    LOWPASS_FILTER_CUTOFF = 40; % in Hz (approximate FicTrac sample rate)
     MAX_YAW_VELOCITY = 2500; % deg/sec
     MAX_FWD_VELOCITY = 2500; % deg/sec
     MAX_SLIDE_VELOCITY = 2500; % deg/sec
@@ -41,6 +41,9 @@ function preprocessFicTrac(daqData, daqTime, sampRate)
         daqData.ficTracHeading, sampRate, LOWPASS_FILTER_CUTOFF, ...
         MAX_YAW_VELOCITY);
     
+    % wrap yaw angular position to 360 deg instead of it being cumulative
+    yawAngPosWrap = wrapTo360(yawAngPos);
+    
     % conversion factor between degrees and mm
     circum = BALL_DIAM * pi; % circumference of ball, in mm
     mmPerDeg = circum / 360; % mm per degree of ball
@@ -50,7 +53,7 @@ function preprocessFicTrac(daqData, daqTime, sampRate)
         sampRate, LOWPASS_FILTER_CUTOFF, MAX_FWD_VELOCITY);
     fwdVel = fwdAngVel .* mmPerDeg; % velocity in mm/sec
     % cumulative forward position in mm, where start of trial is at 0
-    fwdCumPos = (cumsum(fwdAngPos)-fwdAngPos(1)) .* mmPerDeg; 
+    fwdCumPos = (fwdAngPos - fwdAngPos(1)) .* mmPerDeg; 
     
     % slide direction (intY)
     [slideAngVel, slideAngPos] = ficTracSignalDecoding(...
@@ -58,7 +61,7 @@ function preprocessFicTrac(daqData, daqTime, sampRate)
         MAX_SLIDE_VELOCITY);
     slideVel = slideAngVel .* mmPerDeg; % velocity in mm/sec
     % cumulative slide position in mm, where start of trial is at 0
-    slideCumPos = (cumsum(slideAngPos)-slideAngPos(1)) .* mmPerDeg;     
+    slideCumPos = (slideAngPos-slideAngPos(1)) .* mmPerDeg;     
     
     % position incorporating heading - as if fly were walking on x-y plane,
     %  x-y coordinates at each time point
@@ -66,30 +69,27 @@ function preprocessFicTrac(daqData, daqTime, sampRate)
     zeroedYawAngPos = yawAngPos - yawAngPos(1); 
     
     % movement in x (in degrees) at each time point
-    xAngPos = fwdAngPos .* sind(zeroedYawAngPos) + ...
-        slideAngPos .* sind(zeroedYawAngPos + 90);
-    % movement in x (in mm) at each time point
-    xPos = xAngPos .* mmPerDeg;
-    % cumulative x position in mm (i.e. x-coordinate of fly's position at
-    %  each time point)
-    xCumPos = (cumsum(xAngPos) - xAngPos(1)) .* mmPerDeg;
-    
+    xChangePos = (fwdAngVel ./ sampRate) .* sind(zeroedYawAngPos) + ...
+        (slideAngVel ./ sampRate) .* sind(zeroedYawAngPos + 90);  
+
+    % x position in mm (i.e. x-coordinate of fly's position at each time 
+    %  point), starts at 0
+    xPos = (cumsum(xChangePos) - xChangePos(1)) .* mmPerDeg;
+   
     % movement in y (in degrees) at each time point
-    yAngPos = fwdAngPos .* cosd(zeroedYawAngPos) + ...
-        slideAngPos .* cosd(zeroedYawAngPos + 90);
-    % movement in x (in mm) at each time point
-    yPos = yAngPos .* mmPerDeg;
-    % cumulative y position in mm (i.e. y-coordinate of fly's position at
-    %  each time point)
-    yCumPos = (cumSum(yAngPos) - yAngPos(1)) .* mmPerDeg;
+    yChangePos = (fwdAngVel ./ sampRate) .* cosd(zeroedYawAngPos) + ...
+        (slideAngVel ./ sampRate) .* cosd(zeroedYawAngPos + 90);
+
+    % y position in mm (i.e. y-coordinate of fly's position at each time 
+    %  point), starts at 0
+    yPos = (cumsum(yChangePos) - yChangePos(1)) .* mmPerDeg;
     
     % time
-    t = daqTime;
+    t = daqTime';
     
     % save data
-    save('fictracDat.mat', 'yawAngVel', 'yawAngPos', 'fwdAngVel', ...
-        'fwdVel', 'fwdAngPos', 'fwdCumPos', 'slideAngVel', ...
-        'slideVel', 'slideAngPos', 'slideCumPos', 'xPos', 'xCumPos',...
-        'yPos', 'yCumPos', 't', '-v7.3');
+    save('fictracDat.mat', 'yawAngVel', 'yawAngPosWrap', 'fwdVel', ...
+        'fwdCumPos', 'slideVel', 'slideCumPos', 'xPos', 'yPos', ...
+        't', '-v7.3');
 
 end

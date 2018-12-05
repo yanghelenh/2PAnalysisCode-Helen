@@ -7,13 +7,20 @@
 %  series, unaligned series, mean image, and metadata output by ScanImage.
 % 
 % On FicTrac data:
+% Converts raw voltage traces collected on experimental DAQ into position
+%  and velocity traces for each of 3 axes (yaw/heading, forward, slide).
+%  Also generates fictive path. Saves all of these in .mat file.
 % 
 % On leg tracking data:
+% Extracts frame time for each frame of leg tracking video. Saves this as
+%  well as path and name info for legVid video, which is to be fed into
+%  APT.
 %
 % NOTE: assumes folder organization of date folder with one or more fly
-% folders with one or more field of view folers with one or more trial
+% folders with one or more field of view folders with one or more trial
 % folders. Assumes trial folder only has 1 .tif file, which is ScanImage
-% .tif file
+% .tif file. Assumes trial folder only has 1 *legVid*.mp4 file, which is
+% the leg vid video file.
 %
 % CREATED: 10/3/18 HHY
 % UPDATED: 12/4/18 HHY 
@@ -21,8 +28,9 @@
 function preprocess()
 
     disp('Select metadata spreadsheet for experiment');
-    [sprdshtName, sprdshtPath] = uigetfile;
-    sprdshtFullPath = [sprdshtName filesep sprdshtPath];
+    [sprdshtName, sprdshtPath] = uigetfile('*.xlsx', ...
+        'Select metadata spreadsheet');
+    sprdshtFullPath = [sprdshtPath filesep sprdshtName];
 
     disp('Select a date folder to preprocess.');
     datePath = uigetdir;
@@ -55,7 +63,7 @@ function preprocess()
             % loop through trial folders in FOV folder
             for k = 1:length(trialFolders)
                 trialPath = [fovPath filesep trialFolders(k).name];
-                expName = [dateFolder '_' flyFolders(i).name '_' ...
+                exptName = [dateFolder '_' flyFolders(i).name '_' ...
                     fovFolders(j).name '_' trialFolders(k).name];
                 cd (trialPath)
                 
@@ -67,7 +75,7 @@ function preprocess()
                     if(strcmp(mExcep.identifier, ...
                             'MATLAB:load:couldNotReadFile'))
                         fprintf(['Error: no userDaqDat.mat file found '...
-                            'for /n %s /n Skipping processing'], ... 
+                            'for \n %s \n Skipping processing'], ... 
                             trialPath);
                         continue; % skips processing of this trial
                     % other errors, throw and stop preprocess completely    
@@ -76,10 +84,14 @@ function preprocess()
                     end
                 end
                 
+                % display updates in command line
+                fprintf('Preprocessing %s \n', trialPath);
+                
                 % process metadata from userDaqDat.mat
                 [daqData, daqOutput, daqTime, settings] = ...
                     preprocessUserDaq(exptCond, flyData, inputParams, ...
-                    rawData, rawOutput, settings, sprdshtPath, exptName);
+                    rawData, rawOutput, settings, sprdshtFullPath,...
+                    exptName);
                 
                 
                 % if this experiment has imaging data
@@ -95,7 +107,7 @@ function preprocess()
                         preprocessImaging(tifFile, daqData, daqTime);
                     else
                         fprintf(['Warning: Imaging data expected, but '
-                            'no .tif file found for:/n %s'], trialPath);
+                            'no .tif file found for:\n %s \n'], trialPath);
                     end
                 end
                 
@@ -113,6 +125,9 @@ function preprocess()
                     disp('Preprocessing leg video data');
                     preprocessLegVid(daqData, daqOutput, daqTime);  
                 end
+                
+                % display updates in command line
+                fprintf('Done preprocessing %s \n', trialPath);
                 
             end
         end

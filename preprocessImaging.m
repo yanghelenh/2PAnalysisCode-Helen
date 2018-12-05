@@ -21,7 +21,7 @@
 %    respectively, in pwd.
 %
 % CREATED: 10/24/18 HHY
-% UPDATED: 10/25/18 HHY
+% UPDATED: 12/4/18 HHY
 %
 
 function preprocessImaging(tifFile, daqData, daqTime)
@@ -51,9 +51,35 @@ function preprocessImaging(tifFile, daqData, daqTime)
 
     % get descriptions
     descriptions = imgData.descriptions();
+    
+    % convert descriptions into struct array
+    % get current variables 
+    currVars = who();
+    
+    % add all variables used in next part of function as well
+    currVars = [currVars; {'currVars'; 'i'; 'j'; 'ans'; 'allVars'; ...
+        'newVars';'tempStrct';'descriptionsStrct'}];
+    
+    for i = 1:length(descriptions)
+        % run string for descriptions; loads variables into workspace
+        evalc(descriptions{i});
+        
+        % identify which variables were just loaded
+        allVars = who(); % all variables
+        % variables loaded by descriptions
+        newVars = allVars(not(cellfun(@(x) sum(strcmp(x, currVars)), ...
+            allVars)));
+        
+        % construct strct from descriptions data
+        for j = 1:length(newVars)
+            tempStrct.(newVars{j}) = nestedEvalin(newVars{j});
+        end
+        descriptionsStrct(i) = tempStrct;
+    end
+    
 
     % save metadata and descriptions
-    save('imMetaDat.mat', 'SI', 'descriptions', '-v7.3');
+    save('imMetaDat.mat', 'SI', 'descriptionsStrct', '-v7.3');
 
     % align time series
 
@@ -96,8 +122,12 @@ function preprocessImaging(tifFile, daqData, daqTime)
         frameTimingError = 1;
     end
     
+    % convert frame time indicies to actual time
     frameStartTimes = daqTime(frameStarts + 1);
     frameEndTimes = daqTime(frameEnds + 1);
+    
+    % trial path is present working directory
+    trialPath = pwd;
 
     % save time series data
     save('imDat.mat', 'unalignedSeries', 'alignedSeries', ...

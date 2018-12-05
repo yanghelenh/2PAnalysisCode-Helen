@@ -81,7 +81,14 @@ function [daqData, daqOutput, daqTime, settings] = preprocessUserDaq(...
         flyData.age, flyData.ageUnits, inputParams.exptDuration, ...
         inputParams.temperature, [], flyData.dissectionNotes, []};
     
+    % convert cell array to table
+    rowTable = cell2table(rowArray);
+    
+    
     % write to excel spreadsheet
-    xlswrite(sprdshtPath, rowArray, 1, writeCell);
+%     xlswrite(sprdshtPath, rowArray, 1, writeCell); 
+    %  xlswrite doesn't work on mac; use writetable instead
+    writetable(rowTable, sprdshtPath, 'Range', writeCell, ...
+        'WriteVariableNames', false);
        
 end
