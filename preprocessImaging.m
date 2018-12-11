@@ -21,7 +21,7 @@
 %    respectively, in pwd.
 %
 % CREATED: 10/24/18 HHY
-% UPDATED: 12/4/18 HHY
+% UPDATED: 12/10/18 HHY
 %
 
 function preprocessImaging(tifFile, daqData, daqTime)
@@ -35,8 +35,9 @@ function preprocessImaging(tifFile, daqData, daqTime)
 
     % get time series data
     fprintf('Reading %s \n', tifFileName);
-
-    unalignedSeries = imgData.data();
+    
+    % permute so x is rows, y is columns
+    unalignedSeries = permute(imgData.data(),[2,1,3]);
     
     % number of frames in time series
     numFrames = size(unalignedSeries, 3);
