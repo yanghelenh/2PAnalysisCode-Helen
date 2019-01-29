@@ -3,11 +3,12 @@
 % Function for preprocessing just the Scanimage imaging data. Called by
 %  preprocess(). Reads in ScanImage .tif files. Aligns each time series. 
 %  Saves the aligned series, unaligned series, mean image, and metadata 
-%  output by ScanImage. 
+%  output by ScanImage. Handles both one and multichannel data. Alignment
+%  performed on ch1 (as captured by ScanImage) using NoRMCorre. All other
+%  channels shifted the same amount.
 %
-% NOTE: assumes that trial folder has only one .tif file, which is the
-%  Scanimage .tif file. Also, note NUM_REF_FRAMES parameter for alignment
-%  at top of function.
+% NOTE: assumes that trial folder has only one f*.tif file, which is the
+%  Scanimage .tif file. All NoRMCorre parameters at top.
 %
 % INPUTS:
 %   tifFile - struct of info about the .tif file, output of dir()
@@ -21,26 +22,23 @@
 %    respectively, in pwd.
 %
 % CREATED: 10/24/18 HHY
-% UPDATED: 12/10/18 HHY
+% UPDATED: 1/29/19 HHY
 %
 
 function preprocessImaging(tifFile, daqData, daqTime)
-
-    NUM_REF_FRAMES = 30; % default to 30 reference frames for alignment
+    % NoRMCorre Parameters here:
+    BIN_WIDTH = 200; 
+    MAX_SHIFT = 15;
+    US_FAC = 50;
+    INIT_BATCH = 200;
 
     tifFileName = tifFile.name;
-
-    % read imaging data (ScanImage Tiff)
-    imgData = ScanImageTiffReader(tifFileName);
-
-    % get time series data
+    
+    % print to command line
     fprintf('Reading %s \n', tifFileName);
     
-    % permute so x is rows, y is columns
-    unalignedSeries = permute(imgData.data(),[2,1,3]);
-    
-    % number of frames in time series
-    numFrames = size(unalignedSeries, 3);
+    % read imaging data (ScanImage Tiff)
+    imgData = ScanImageTiffReader(tifFileName);
 
     % get metadata
     metadata = imgData.metadata();
@@ -77,27 +75,63 @@ function preprocessImaging(tifFile, daqData, daqTime)
         end
         descriptionsStrct(i) = tempStrct;
     end
-    
-
+ 
     % save metadata and descriptions
     save('imMetaDat.mat', 'SI', 'descriptionsStrct', '-v7.3');
+    
+    % determine number of channels in data
+    numChannels = length(SI.hChannels.channelSave);
 
-    % align time series
+    % get imaging data and permute so x is rows, y is columns
+    imgDataSeries = permute(imgData.data(),[2,1,3]);
+    
+    % segment imaging data into separate 3D matricies for each channel
+    %  save in struct 
+    for i = 1:numChannels
+        % name the channel using index from scanimage, prefixed with 'ch'
+        channelName = ['ch' num2str(SI.hChannels.channelSave(i))];
+        
+        % indicies for this channel
+        ind = i:numChannels:size(imgDataSeries,3);
+        
+        % this channel's time series
+        tempSeries = imgDataSeries(:,:,ind);
+        % convert from int16 to double
+        tempSeries = double(tempSeries);
+        % set minimum of series to 0
+        tempSeries = tempSeries - min(tempSeries(:));
+        
+        % save series
+        unalignedSeries.(channelName) = tempSeries;
+    end
 
-    % Create reference frame for image alignment 
-    % reference stack using first numRefFrames frames 
-    refStack = unalignedSeries(:,:,1:NUM_REF_FRAMES); 
-    % max intensity projection of ref stack.
-    refFrame = max(refStack, [], 3); 
+    % align time series using NoRMCorre
+    %  align on ch1, shift any additional channels to match
+    % set parameters
+    optionsRigid = NoRMCorreSetParms('d1', size(unalignedSeries.ch1,1),...
+        'd2', size(unalignedSeries.ch1,2), 'bin_width', BIN_WIDTH, ...
+        'max_shift', MAX_SHIFT, 'us_fac', US_FAC, 'init_batch', ...
+        INIT_BATCH);
+    % run rigid motion correction
+    [alignedSeries.ch1, shifts, ~, optionsRigid] = normcorre(...
+        unalignedSeries.ch1, optionsRigid);
+    % compute motion correction metrics, provided by NoRMCorre
+    [corrCoeffs.ch1, meanImgAligned.ch1, ~] = motion_metrics(...
+        alignedSeries.ch1, 10);
+    % align all other channels (if present) to ch1
+    if (numChannels > 1)
+        for i = 2:numChannels
+            channelName = ['ch' num2str(i)];
 
-    % Align the time series
-    fprintf('Aligning %s \n', tifFileName);
-
-    alignedSeries = fccAlignment(unalignedSeries, ...
-        refFrame, 'xml');
-    % Average over time of the whole aligned time series
-    meanImageAligned = int16(mean(alignedSeries, 3));
-
+            % shift channel
+            alignedSeries.(channelName) = apply_shifts(...
+                unalignedSeries.(channelName), shifts, optionsRigid);
+            % compute motion correction metrics on other channels
+            [corrCoeffs.(channelName), meanImgAligned.(channelName), ~]...
+                = motion_metrics(alignedSeries.(channelName), 10);        
+        end
+    end
+    
     % extract frame times
     frameStarts = find(diff(daqData.scanimageFrameClock) > 0.1);
     frameEnds = find(diff(daqData.scanimageFrameClock) < -0.1);
@@ -132,7 +166,7 @@ function preprocessImaging(tifFile, daqData, daqTime)
 
     % save time series data
     save('imDat.mat', 'unalignedSeries', 'alignedSeries', ...
-        'meanImageAligned', 'trialPath', 'tifFileName', ...
+        'meanImgAligned', 'corrCoeffs', 'trialPath', 'tifFileName', ...
         'frameStartTimes', 'frameEndTimes', 'frameTimingError', '-v7.3');
                 
 end

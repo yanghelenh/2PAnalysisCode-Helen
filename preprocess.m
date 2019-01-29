@@ -18,12 +18,13 @@
 %
 % NOTE: assumes folder organization of date folder with one or more fly
 % folders with one or more field of view folders with one or more trial
-% folders. Assumes trial folder only has 1 .tif file, which is ScanImage
-% .tif file. Assumes trial folder only has 1 *legVid*.mp4 file, which is
-% the leg vid video file.
+% folders. Assumes trial folder only has 1 f*.tif file, which is ScanImage
+% .tif file. ScanImage .tif file name must begin with f (i.e. default 
+% starts with 'file'. Assumes trial folder only has 1 *legVid*.mp4 file, 
+% which is the leg vid video file.
 %
 % CREATED: 10/3/18 HHY
-% UPDATED: 12/4/18 HHY 
+% UPDATED: 1/29/19 HHY 
 %
 function preprocess()
 
@@ -97,7 +98,7 @@ function preprocess()
                 % if this experiment has imaging data
                 if (contains(exptCond, 'Img'))
                     % name of ScanImage Tiff
-                    tifFile = dir([trialPath filesep '*.tif']);
+                    tifFile = dir([trialPath filesep 'f*.tif']);
 
                     % only if imaging data exists
                     if ~isempty(tifFile)
@@ -105,6 +106,7 @@ function preprocess()
                         % align imaging data, save that and metadata in
                         %  trialPath
                         preprocessImaging(tifFile, daqData, daqTime);
+%                         preprocessImaging2Ch(tifFile, daqData, daqTime);
                     else
                         fprintf(['Warning: Imaging data expected, but '
                             'no .tif file found for:\n %s \n'], trialPath);

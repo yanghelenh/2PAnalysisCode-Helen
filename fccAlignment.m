@@ -58,12 +58,21 @@ function [registeredImages] = fccAlignment(imageArray, refFrame, filetype)
 
         [~, registeredImageFT] = dftregistration(refImageFT, jImageFT, ...
                                                  upSamplingFactor); 
-        
+
         % Convert image to 16 bit format. Check this for use with different bit
         % depths.
 %         registeredImages(:, :, jImage) = uint16(ifft2(registeredImageFT));
         registeredImages(:, :, jImage) = int16(ifft2(registeredImageFT));
 %         unregisteredImages(:, :, jImage) = jImageToRegister;
-                                             
+
+
+        % sometimes, ifft2 inverts image sign 181212 HHY (why?)
+        meanValOrig = mean2(jImageToRegister);
+        meanValReg = mean2(registeredImages(:,:,jImage));
+        
+        if (sign(meanValOrig) ~= sign(meanValReg))
+            registeredImages(:,:,jImage) = registeredImages(:,:,jImage) * -1;
+        end
+                                
     end 
 end 

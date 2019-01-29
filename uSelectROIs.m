@@ -23,6 +23,8 @@ function uSelectROIs()
     disp('Select a trial folder to preprocess.');
     uTrialPath = uigetdir;
     
+    fprintf('Processing %s \n', uTrialPath);
+    
     % check that selected folder has imDat.mat file
     trialPathFiles = dir(uTrialPath);
     trialPathFileNames = extractfield(trialPathFiles, 'name');
@@ -38,7 +40,7 @@ function uSelectROIs()
         %  run on this trial folder before)
         if (exist('bksSignal', 'var')) 
             prompt = ['ROIs have already been selected for this trial.' ... 
-                ' Overwrite? (Y/N)'];
+                ' Overwrite? (Y/N) '];
             ui = input(prompt,'s');
             if (~strcmpi(ui, 'Y'))
                 % stop running this function. don't overwrite 
