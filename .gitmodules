@@ -1,0 +1,3 @@
+[submodule "NoRMCorre"]
+	path = NoRMCorre
+	url = https://github.com/flatironinstitute/NoRMCorre.git
