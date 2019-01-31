@@ -74,14 +74,14 @@ end
 % low pass filter the position array
 filteredPosition = lowPassFilter(cleanedPos, lowPassFilterCutOff, ...
     sampleRate);
-% low pass filter the position array again to be more aggressize
+% low pass filter the position array again to be more aggressive
 filteredPosition = lowPassFilter(filteredPosition, lowPassFilterCutOff,...
     sampleRate);
 
  
 % plotting to check how well unwrapping, cleaning and filtering worked
 % can be commented out once you are happy with the parameters
- %{ 
+%{
 figure('Position',[50, 50, 1000, 400]);  set(gcf, 'Color', 'w');
 ax(1) = subplot(4, 1, 1);
 plot( posRadians ); hold on;
@@ -110,7 +110,7 @@ velocityOut = replaceValuesOutsideThresholdBound(velocityOut, ...
     maxFlyVelocity);
 
 % plotting to check degree calulation and velocity
- %{ 
+%{
 figure('Position',[50, 50, 1000, 400]);  set(gcf, 'Color', 'w');
 bx(1) = subplot(3, 1, 1);
 plot( filteredPosition ); hold on;

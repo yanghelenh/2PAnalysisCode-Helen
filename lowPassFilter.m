@@ -13,7 +13,7 @@
 %   out - filtered version of data
 % 
 % CREATED: Yvette Fisher 1/2018
-% UPDATED: 11/24/18 HHY
+% UPDATED: 1/31/19 HHY
 %
 
 function [out] = lowPassFilter(data, lowPassCutOff, sampleRate)
@@ -21,8 +21,8 @@ function [out] = lowPassFilter(data, lowPassCutOff, sampleRate)
 % low pass filter the data trace :
 % fprintf('\nLow-pass filtering at %d Hz\n',lowPassCutOff);
 
-% build butter function
-[b,a] = butter(1 , lowPassCutOff / (sampleRate/2), 'low');
+% build 2nd order butter function
+[b,a] = butter(2 , lowPassCutOff / (sampleRate/2), 'low');
 
 % filter data using butterworth function
 out = filtfilt(b, a, data);

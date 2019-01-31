@@ -30,7 +30,8 @@
 
 function preprocessFicTrac(daqData, daqTime, sampRate)
     % constants
-    LOWPASS_FILTER_CUTOFF = 40; % in Hz (approximate FicTrac sample rate)
+    % lowpass filter cutoff (approximately half of FicTrac sample rate)
+    LOWPASS_FILTER_CUTOFF = 40; % in Hz 
     MAX_YAW_VELOCITY = 2500; % deg/sec
     MAX_FWD_VELOCITY = 2500; % deg/sec
     MAX_SLIDE_VELOCITY = 2500; % deg/sec
