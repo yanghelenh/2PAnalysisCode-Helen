@@ -104,6 +104,9 @@ function preprocessImaging(tifFile, daqData, daqTime)
         % save series
         unalignedSeries.(channelName) = tempSeries;
     end
+    
+    % get number of frames in imaging data
+    numFrames = size(unalignedSeries.ch1, 3);
 
     % align time series using NoRMCorre
     %  align on ch1, shift any additional channels to match
@@ -168,5 +171,7 @@ function preprocessImaging(tifFile, daqData, daqTime)
     save('imDat.mat', 'unalignedSeries', 'alignedSeries', ...
         'meanImgAligned', 'corrCoeffs', 'trialPath', 'tifFileName', ...
         'frameStartTimes', 'frameEndTimes', 'frameTimingError', '-v7.3');
+    
+    disp('Imaging data saved!');
                 
 end

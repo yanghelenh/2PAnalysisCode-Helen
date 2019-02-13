@@ -58,4 +58,6 @@ function preprocessLegVid(daqData, daqOutput, daqTime)
     save('legVidDat.mat', 'legVidFrameTimes', 'vidName', 'vidFolder',...
         'vidExists', '-v7.3');
     
+    disp('Leg video data saved!');
+    
 end

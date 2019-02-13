@@ -92,5 +92,7 @@ function preprocessFicTrac(daqData, daqTime, sampRate)
     save('fictracDat.mat', 'yawAngVel', 'yawAngPosWrap', 'fwdVel', ...
         'fwdCumPos', 'slideVel', 'slideCumPos', 'xPos', 'yPos', ...
         't', '-v7.3');
+    
+    disp('FicTrac data saved!');
 
 end
