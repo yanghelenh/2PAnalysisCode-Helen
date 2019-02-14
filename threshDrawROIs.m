@@ -130,6 +130,7 @@ function roiMasks = threshDrawROIs(avgIm)
         drawnMask = roipoly;
         
         roiMasks{i} = threshMask .* drawnMask;
+        roiMasks{i} = logical(roiMasks{i});
         
         % plot ROI mask
         curMask = cat(3, curColor(1).*roiMasks{i}, ...
