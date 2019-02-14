@@ -96,8 +96,8 @@ function preprocessImaging(tifFile, daqData, daqTime)
         
         % this channel's time series
         tempSeries = imgDataSeries(:,:,ind);
-        % convert from int16 to double
-        tempSeries = double(tempSeries);
+        % convert from int16 to single
+        tempSeries = single(tempSeries);
         % set minimum of series to 0
         tempSeries = tempSeries - min(tempSeries(:));
         

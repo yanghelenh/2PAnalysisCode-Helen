@@ -1,8 +1,10 @@
-% uSelectROIs.m
+% uThreshSelectROIs.m
 %
 % Function for the user to select the ROIs and background threshold for a 
 %  single time series. Calculates raw signal (mean pixel intensity) in each
 %  ROI and performs background subtraction.
+% ROI selection by pixels with mean pixel intensity relative to rest of
+%  image above threshold and within user-drawn outline.
 %
 % INPUTS:
 %   none, but prompts user for trial folder with preprocessed imaging data
@@ -10,11 +12,11 @@
 % OUTPUTS:
 %   none, but saves data for ROIs back into same imDat.mat file
 %
-% CREATED: 12/10/18 HHY
-% UPDATED: 2/13/19 HHY - to deal with multi-channel data
+% CREATED: 2/13/19 HHY
+% UPDATED: 2/13/19 HHY
 %
 
-function uSelectROIs()
+function uThreshSelectROIs()
 
     close all % close all open figures
     clc
@@ -44,14 +46,14 @@ function uSelectROIs()
             ui = input(prompt,'s');
             if (~strcmpi(ui, 'Y'))
                 % stop running this function. don't overwrite 
-                disp('Ending uSelectROIs. Nothing overwritten');
+                disp('Ending uThreshSelectROIs. Nothing overwritten');
                 cd(curDir); % return to previous directory
                 return;
             end
         end
 
-        % user draws ROIs, get masks for ROIs - always on ch1
-        roiMasks = drawROIs(meanImageAligned.ch1);
+        % combination draw and thresh to get masks for ROIs - always on ch1
+        roiMasks = threshDrawROIs(meanImageAligned.ch1);
 
         % user determines background (by setting threshold on dF/F
         % of image across space
