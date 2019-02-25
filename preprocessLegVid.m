@@ -18,7 +18,7 @@
 %   None, but saves data in legVidDat.mat in pwd.
 %
 % CREATED: 12/4/18 HHY
-% UPDATED: 12/4/18 HHY
+% UPDATED: 2/25/19 HHY
 %
 
 function preprocessLegVid(daqData, daqOutput, daqTime)
@@ -40,7 +40,7 @@ function preprocessLegVid(daqData, daqOutput, daqTime)
     
     % get full path and file name of legVid - assumes that name contains
     %  legVid and the file is .mp4
-    vidDir = dir('*legVid*.mp4');
+    vidDir = dir('legVid*.mp4');
     
     % check that legVid video exists
     if (~isempty(vidDir))
@@ -48,7 +48,7 @@ function preprocessLegVid(daqData, daqOutput, daqTime)
         vidFolder = vidDir.folder;
         vidExists = true;
     else
-        disp('Warning: No leg video matching name *legVid*.mp4 found');
+        disp('Warning: No leg video matching name legVid*.mp4 found');
         vidName = [];
         vidFolder = [];
         vidExists = false;
