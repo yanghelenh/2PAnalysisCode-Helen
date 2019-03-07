@@ -90,7 +90,7 @@ function uThreshSelectROIs()
 
         % save new variables into imDat.mat
         save('imDat.mat', 'roiMasks', 'bkMask', 'avSignal', ...
-            'bksSignal', '-v7.3', '-append');
+            'bksSignal', '-append');
         disp('Saved!');
         
         cd(curDir); % return to previous directory

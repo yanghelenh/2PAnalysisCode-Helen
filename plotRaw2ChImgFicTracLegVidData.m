@@ -10,16 +10,17 @@
 %   yRange - display range for dF/F axes, pair of values [yMin yMax]
 %   vidClipLen - length of video clip to display, in seconds
 %   vidSpeed - video playback speed, as fraction of actual speed
+%   avgWindow - in seconds, window for moving average on fictrac data
 %
 % OUTPUTS:
 %   none, but generates plot as side effect
 %
 % CREATED: 2/25/19 HHY
-% UPDATED: 2/26/19 HHY
+% UPDATED: 3/7/19 HHY
 %
 
 function plotRaw2ChImgFicTracLegVidData(tRange, yRange, vidClipLen, ...
-    vidSpeed)
+    vidSpeed, avgWindow)
 
     % ask user to select trial folder
     disp('Select a trial folder display.');
@@ -67,13 +68,6 @@ function plotRaw2ChImgFicTracLegVidData(tRange, yRange, vidClipLen, ...
     % ficTrac sampling time
     sampRate = 1/(median(diff(fictracTimes)));
     
-    % smoothing for ficTrac data
-    % moving average filter
-    avgWindow = 0.3; % in seconds
-    windowSize = round(avgWindow * sampRate);
-    b = (1/windowSize)*ones(1,windowSize);
-    a = 1;
-    
     f = figure;
     
     % plot ROIs dF/F
@@ -97,7 +91,8 @@ function plotRaw2ChImgFicTracLegVidData(tRange, yRange, vidClipLen, ...
     xlim(tLims);
     ylim([-10 30]);
     hold on;
-    smoFwdVel = filtfilt(b,a, fwdVel);
+    smoFwdVel = moveAvgFilt(fwdVel, sampRate, avgWindow);
+    
     plot(fictracTimes, smoFwdVel, 'r');
     xlabel('Time (sec)');
     ylabel('mm/sec');
@@ -109,7 +104,7 @@ function plotRaw2ChImgFicTracLegVidData(tRange, yRange, vidClipLen, ...
     ylim([-500 500]);
     xlim(tLims);
     hold on;
-    smoYawAngVel = filtfilt(b,a, yawAngVel);
+    smoYawAngVel = moveAvgFilt(yawAngVel, sampRate, avgWindow);
     plot(fictracTimes, smoYawAngVel, 'r');
     xlabel('Time (sec)');
     ylabel('deg/sec');
