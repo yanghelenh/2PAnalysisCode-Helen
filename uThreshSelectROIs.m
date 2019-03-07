@@ -13,7 +13,7 @@
 %   none, but saves data for ROIs back into same imDat.mat file
 %
 % CREATED: 2/13/19 HHY
-% UPDATED: 2/13/19 HHY
+% UPDATED: 3/7/19 HHY
 %
 
 function uThreshSelectROIs()
@@ -35,12 +35,18 @@ function uThreshSelectROIs()
     if (hasImDat) % has appropriate file
         curDir = pwd;
         cd(uTrialPath);
-        % load imDat.mat contents
-        load('imDat.mat');
         
-        % if background subtracted signal exists (i.e. uSelectROIs already
-        %  run on this trial folder before)
-        if (exist('bksSignal', 'var')) 
+        % get variables in imDat
+        imDatStrct = whos('-file', 'imDat.mat');
+        imDatVars = extractfield(imDatStrct, 'name');
+        
+        % check if background subtracted signal exists (i.e. ROIs selected
+        %  before)
+        roisSelected = sum(strcmp(imDatVars, 'bksSignal'));
+        
+        % if background subtracted signal exists, prompt user if they want
+        %  to overwrite
+        if (roisSelected) 
             prompt = ['ROIs have already been selected for this trial.' ... 
                 ' Overwrite? (Y/N) '];
             ui = input(prompt,'s');
@@ -51,6 +57,10 @@ function uThreshSelectROIs()
                 return;
             end
         end
+        
+        % load imDat.mat contents, only needed variables
+        load('imDat.mat', 'alignedSeries', 'frameStartTimes', ...
+            'meanImgAligned');
 
         % combination draw and thresh to get masks for ROIs - always on ch1
         roiMasks = threshDrawROIs(meanImgAligned.ch1);
@@ -79,10 +89,8 @@ function uThreshSelectROIs()
         end
 
         % save new variables into imDat.mat
-        save('imDat.mat', 'unalignedSeries', 'alignedSeries', ...
-            'meanImgAligned', 'trialPath', 'tifFileName', ...
-            'frameStartTimes', 'frameEndTimes', 'frameTimingError', ...
-            'roiMasks', 'bkMask', 'avSignal', 'bksSignal', '-v7.3');
+        save('imDat.mat', 'roiMasks', 'bkMask', 'avSignal', ...
+            'bksSignal', '-v7.3', '-append');
         disp('Saved!');
         
         cd(curDir); % return to previous directory

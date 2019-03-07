@@ -23,7 +23,8 @@ function addMyPaths()
     addpath(genpath(expPath));
 
     %% Folder containing your metadata spreadsheet 
-    metadataPath = '/Users/hyang/Documents/2PAnalysis-Helen';
+%     metadataPath = '/Users/hyang/Documents/2PAnalysis-Helen';
+    metadataPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen';
     addpath(genpath(metadataPath));
 
     %% Folder containing processed data (*_pdata.mat files)

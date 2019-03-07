@@ -6,7 +6,8 @@
 %  brief clip of leg tracking video, starting at time of click.
 %
 % INPUTS:
-%   tRange - display range for time axis
+%   tRange - display range for time axis, single value
+%   yRange - display range for dF/F axes, pair of values [yMin yMax]
 %   vidClipLen - length of video clip to display, in seconds
 %   vidSpeed - video playback speed, as fraction of actual speed
 %
@@ -14,23 +15,26 @@
 %   none, but generates plot as side effect
 %
 % CREATED: 2/25/19 HHY
-% UPDATED: 2/25/19 HHY
+% UPDATED: 2/26/19 HHY
 %
 
-function plotRaw2ChImgFicTracLegVidData(tRange, vidClipLen, vidSpeed)
+function plotRaw2ChImgFicTracLegVidData(tRange, yRange, vidClipLen, ...
+    vidSpeed)
 
     % ask user to select trial folder
-    disp('Select a trial folder to preprocess.');
+    disp('Select a trial folder display.');
     uTrialPath = uigetdir;
     curDir = pwd;
     cd(uTrialPath)
+    
+    fprintf('Displaying %s \n', uTrialPath);
     
     % load relevant data
     load('fictracDat.mat', 'fwdVel', 'yawAngVel', 't');
     fictracTimes = t;
     load('imDat.mat', 'bksSignal', 'frameStartTimes');
     frameTimes = frameStartTimes;
-    load('legVidDat.mat', 'legVidFrameTimes', 'vidName');
+    load('legVidDat.mat', 'legVidFrameTimes', 'vidName', 'vidFolder');
     
     numROIs = size(bksSignal.ch1, 1); 
     
@@ -77,7 +81,8 @@ function plotRaw2ChImgFicTracLegVidData(tRange, vidClipLen, vidSpeed)
         subplotHandles{i} = subplot(numSubplots, 1, i);
         plot(frameTimes, dFFs(i,:));
 %         ylim([yMin, yMax]);
-        ylim([yMin, 1]);
+%         ylim([-1, 1]);
+        ylim(yRange)
         xlim(tLims);
 %         xlim([xMin, xMax]);
         xlabel('Time (sec)');
@@ -111,10 +116,11 @@ function plotRaw2ChImgFicTracLegVidData(tRange, vidClipLen, vidSpeed)
     title('Rotational Velocity');
     
     % link x-axes
-    linkaxes(cell2mat(subplotHandles), 'x');
+%     linkaxes(subplotHandles, 'x');
     
     % initialize video reader
-    vidRead = VideoReader(vidName);
+    vidPath = [vidFolder filesep vidName];
+    vidRead = VideoReader(vidPath);
     % rescale video timing to match acquisition trigger timing
     actVidDur = legVidFrameTimes(end) - legVidFrameTimes(1);
     vidDur = vidRead.Duration;
@@ -123,7 +129,7 @@ function plotRaw2ChImgFicTracLegVidData(tRange, vidClipLen, vidSpeed)
     
     % number of video frames to display
     legVidIFI = median(diff(legVidFrameTimes));
-    numFrames = vidClipLen / legVidIFI;
+    numFrames = round(vidClipLen / legVidIFI);
     
     % frame rate of leg video playback
     legVidFrameRate = 1/legVidIFI * vidSpeed;
@@ -132,8 +138,6 @@ function plotRaw2ChImgFicTracLegVidData(tRange, vidClipLen, vidSpeed)
         legVidFrameRate = 1/legVidIFI * 0.25;
     end
         
-    
-    
     % slider for scrolling x-axis
     tSlider = uicontrol(f, 'Style', 'slider', 'Position', [20 10 400 20]);
     tSlider.Value = 0;
@@ -143,6 +147,8 @@ function plotRaw2ChImgFicTracLegVidData(tRange, vidClipLen, vidSpeed)
     vidBut = uicontrol(f, 'Style', 'pushbutton', 'Position', ...
         [500 10 50 30]);
     vidBut.Callback = @displayVid;
+    
+    cd(curDir)
     
     function updateTLim(src, event)
         for j = 1:length(subplotHandles)
@@ -163,10 +169,11 @@ function plotRaw2ChImgFicTracLegVidData(tRange, vidClipLen, vidSpeed)
         vidRead.CurrentTime = vidStartTime;
         
         % read in video
-        legVid = zeros(v.Width, v.Height, 3, numFrames);
+        legVid = zeros(vidRead.Width, vidRead.Height, 3, numFrames, ...
+            'uint8');
         for k = 1:numFrames
-            if(hasFrame(v))
-                legVid(:,:,:,i) = readFrame(v);
+            if(hasFrame(vidRead))
+                legVid(:,:,:,k) = readFrame(vidRead);
             end
         end
         
