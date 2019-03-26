@@ -97,6 +97,7 @@ function uThreshSelectROIs()
         
     else
         disp('Selected trial folder does not contain imDat.mat file');
+        cd(curDir);
         return;
     end
         

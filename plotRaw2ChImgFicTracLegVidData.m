@@ -23,7 +23,7 @@ function plotRaw2ChImgFicTracLegVidData(tRange, yRange, vidClipLen, ...
     vidSpeed, avgWindow)
 
     % ask user to select trial folder
-    disp('Select a trial folder display.');
+    disp('Select a trial folder to display.');
     uTrialPath = uigetdir;
     curDir = pwd;
     cd(uTrialPath)
@@ -116,8 +116,9 @@ function plotRaw2ChImgFicTracLegVidData(tRange, yRange, vidClipLen, ...
     % initialize video reader
     vidPath = [vidFolder filesep vidName];
     vidRead = VideoReader(vidPath);
+    numVidFrames = round(vidRead.Duration * vidRead.FrameRate);
     % rescale video timing to match acquisition trigger timing
-    actVidDur = legVidFrameTimes(end) - legVidFrameTimes(1);
+    actVidDur = legVidFrameTimes(numVidFrames) - legVidFrameTimes(1);
     vidDur = vidRead.Duration;
     vidScaleFactor = vidDur / actVidDur;
     vidOffset = legVidFrameTimes(1);
