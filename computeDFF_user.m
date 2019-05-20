@@ -111,6 +111,8 @@ function computeDFF_user()
                     'frameStartTimes', '-v7.3');
                 disp('Saved!');
             end
+            
+            cd(curDir);
 
         else
             disp('ROIs have not been selected for this trial');

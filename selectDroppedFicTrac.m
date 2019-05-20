@@ -24,7 +24,7 @@ function selectDroppedFicTrac()
     curDir = pwd;
     cd(uTrialPath)
     
-    fprintf('Selecting FicTrac dropped times in %s \n', uTrialPath);
+    fprintf('Selecting FicTrac dropped times in \n%s \n', uTrialPath);
     
     % check that selected folder has fictracDat.mat file
     trialPathFiles = dir(uTrialPath);
