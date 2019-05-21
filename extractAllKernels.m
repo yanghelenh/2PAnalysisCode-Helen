@@ -1,15 +1,19 @@
 % extractAllkernels.m
 %
 % Function to calculate, plot, and save kernels relating responses of ROIs
-%  to FicTrac variables.
+%  to FicTrac variables. Calls computeWienerKernel()
 %
 % Make sure to have calculated dF/F and identified FicTrac dropped frames
 %  before running this function
 %
 % INPUT:
 %   winLen - length of window, in seconds that averages are computed over
-%   lowPassCutoff - cutoff of lowpass filter to apply to numerator, use 0 
-%       if no filtering desired
+%   cutFreq - cutoff frequency (f_cut) in attenuation applied to frequency
+%       domain filter, a la Nagel and Wilson 2011. Set to 0 with tauFreq if
+%       no attenuation desired.
+%   tauFreq - f_tau in attenuation applied to frequency domain filter, a la
+%       Nagel and Wilson 2011. Set to 0 with cutFreq if no attenuation
+%       desired.
 %   sampRate - sampling rate to convert dF/F and FicTrac data to, and to
 %       calculate kernel at
 %   also prompts user for trial folder
@@ -19,10 +23,10 @@
 %
 % CREATED: 4/15/19 HHY
 %
-% UPDATED: 4/15/19 HHY
+% UPDATED: 5/20/19 HHY
 %
 
-function extractAllKernels(winLen, lowpassCutoff, sampRate)
+function extractAllKernels(winLen, cutFreq, tauFreq, sampRate)
 
     % ask user to select trial folder
     disp('Select a trial folder to display.');
@@ -74,59 +78,59 @@ function extractAllKernels(winLen, lowpassCutoff, sampRate)
     % compute kernels for all ROIs
     for i = 1:numROIs
         % forward kernel - fwd vel and dF/F
-        kernelsIndiv(i).fFwdVel = computeWienerKernel(fwdVelRS, dFFsRS(i,:),...
-            sampRate, windowSamps, lowpassCutoff);
+        [kernelsIndiv(i).fFwdVel, ~] = computeWienerKernel(fwdVelRS, ...
+            dFFsRS(i,:), sampRate, winLen, cutFreq, tauFreq);
         
         % reverse kernel - fwd vel and dF/F
-        kernelsIndiv(i).rFwdVel = computeWienerKernel(dFFsRS(i,:), fwdVelRS,...
-            sampRate, windowSamps, lowpassCutoff);
+        [kernelsIndiv(i).rFwdVel, ~] = computeWienerKernel(dFFsRS(i,:),...
+            fwdVelRS, sampRate, winLen, cutFreq, tauFreq);
         
         % forward kernel - yaw vel and dF/F
-        kernelsIndiv(i).fYawVel = computeWienerKernel(yawAngVelRS, ...
-            dFFsRS(i,:), sampRate, windowSamps, lowpassCutoff);
+        [kernelsIndiv(i).fYawVel,~] = computeWienerKernel(yawAngVelRS, ...
+            dFFsRS(i,:), sampRate, winLen, cutFreq, tauFreq);
         
         % reverse kernel - yaw vel and dF/F
-        kernelsIndiv(i).rYawVel = computeWienerKernel(dFFsRS(i,:), ...
-            yawAngVelRS, sampRate, windowSamps, lowpassCutoff);
+        [kernelsIndiv(i).rYawVel,~] = computeWienerKernel(dFFsRS(i,:), ...
+            yawAngVelRS, sampRate, winLen, cutFreq, tauFreq);
         
         % forward kernel - yaw speed and dF/F
-        kernelsIndiv(i).fYawSpd = computeWienerKernel(yawAngSpdRS, ...
-            dFFsRS(i,:), sampRate, windowSamps, lowpassCutoff);
+        [kernelsIndiv(i).fYawSpd, ~] = computeWienerKernel(yawAngSpdRS, ...
+            dFFsRS(i,:), sampRate, winLen, cutFreq, tauFreq);
         
         % reverse kernel - yaw speed and dF/F
-        kernelsIndiv(i).rYawSpd = computeWienerKernel(dFFsRS(i,:), ...
-            yawAngSpdRS, sampRate, windowSamps, lowpassCutoff);
+        [kernelsIndiv(i).rYawSpd, lags] = computeWienerKernel(dFFsRS(i,:), ...
+            yawAngSpdRS, sampRate, winLen, cutFreq, tauFreq);
     end
     
     % compute sum and diff kernels
     if (numROIs == 2)
         % sum kernels
-        kernelsSum.fFwdVel = computeWienerKernel(fwdVelRS, sumDFFrs,...
-            sampRate, windowSamps, lowpassCutoff);
-        kernelsSum.rFwdVel = computeWienerKernel(sumDFFrs, fwdVelRS,...
-            sampRate, windowSamps, lowpassCutoff); 
-        kernelsSum.fYawVel = computeWienerKernel(yawAngVelRS, ...
-            sumDFFrs, sampRate, windowSamps, lowpassCutoff);
-        kernelsSum.rYawVel = computeWienerKernel(sumDFFrs, ...
-            yawAngVelRS, sampRate, windowSamps, lowpassCutoff);
-        kernelsSum.fYawSpd = computeWienerKernel(yawAngSpdRS, ...
-            sumDFFrs, sampRate, windowSamps, lowpassCutoff);
-        kernelsSum.rYawSpd = computeWienerKernel(sumDFFrs, ...
-            yawAngSpdRS, sampRate, windowSamps, lowpassCutoff);
+        [kernelsSum.fFwdVel, ~] = computeWienerKernel(fwdVelRS, sumDFFrs,...
+            sampRate, winLen, cutFreq, tauFreq);
+        [kernelsSum.rFwdVel, ~] = computeWienerKernel(sumDFFrs, fwdVelRS,...
+            sampRate, winLen, cutFreq, tauFreq); 
+        [kernelsSum.fYawVel, ~] = computeWienerKernel(yawAngVelRS, ...
+            sumDFFrs, sampRate, winLen, cutFreq, tauFreq);
+        [kernelsSum.rYawVel, ~] = computeWienerKernel(sumDFFrs, ...
+            yawAngVelRS, sampRate, winLen, cutFreq, tauFreq);
+        [kernelsSum.fYawSpd, ~] = computeWienerKernel(yawAngSpdRS, ...
+            sumDFFrs, sampRate, winLen, cutFreq, tauFreq);
+        [kernelsSum.rYawSpd, ~] = computeWienerKernel(sumDFFrs, ...
+            yawAngSpdRS, sampRate, winLen, cutFreq, tauFreq);
         
         % diff kernels
-        kernelsDiff.fFwdVel = computeWienerKernel(fwdVelRS, diffDFFrs,...
-            sampRate, windowSamps, lowpassCutoff);
-        kernelsDiff.rFwdVel = computeWienerKernel(diffDFFrs, fwdVelRS,...
-            sampRate, windowSamps, lowpassCutoff); 
-        kernelsDiff.fYawVel = computeWienerKernel(yawAngVelRS, ...
-            diffDFFrs, sampRate, windowSamps, lowpassCutoff);
-        kernelsDiff.rYawVel = computeWienerKernel(diffDFFrs, ...
-            yawAngVelRS, sampRate, windowSamps, lowpassCutoff);
-        kernelsDiff.fYawSpd = computeWienerKernel(yawAngSpdRS, ...
-            diffDFFrs, sampRate, windowSamps, lowpassCutoff);
-        kernelsDiff.rYawSpd = computeWienerKernel(diffDFFrs, ...
-            yawAngSpdRS, sampRate, windowSamps, lowpassCutoff);        
+        [kernelsDiff.fFwdVel, ~] = computeWienerKernel(fwdVelRS, ...
+            diffDFFrs, sampRate, winLen, cutFreq, tauFreq);
+        [kernelsDiff.rFwdVel, ~] = computeWienerKernel(diffDFFrs, ...
+            fwdVelRS, sampRate, winLen, cutFreq, tauFreq); 
+        [kernelsDiff.fYawVel, ~] = computeWienerKernel(yawAngVelRS, ...
+            diffDFFrs, sampRate, winLen, cutFreq, tauFreq);
+        [kernelsDiff.rYawVel, ~] = computeWienerKernel(diffDFFrs, ...
+            yawAngVelRS, sampRate, winLen, cutFreq, tauFreq);
+        [kernelsDiff.fYawSpd, ~] = computeWienerKernel(yawAngSpdRS, ...
+            diffDFFrs, sampRate, winLen, cutFreq, tauFreq);
+        [kernelsDiff.rYawSpd, ~] = computeWienerKernel(diffDFFrs, ...
+            yawAngSpdRS, sampRate, winLen, cutFreq, tauFreq);        
         
     end
     
@@ -138,34 +142,40 @@ function extractAllKernels(winLen, lowpassCutoff, sampRate)
     for i = 1:numROIs
         figure;
         subplot(2, 3, 1);
-        plot(kT, kernelsIndiv(i).fFwdVel);
+        plot(lags, kernelsIndiv(i).fFwdVel);
         title('Fwd kernel - Fwd Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 2);
-        plot(kT, kernelsIndiv(i).fYawVel);
+        plot(lags, kernelsIndiv(i).fYawVel);
         title('Fwd kernel - Yaw Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 3);
-        plot(kT, kernelsIndiv(i).fYawSpd);
+        plot(lags, kernelsIndiv(i).fYawSpd);
         title('Fwd kernel - Yaw Speed');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 4);
-        plot(kT, kernelsIndiv(i).rFwdVel);
+        plot(lags, fliplr(kernelsIndiv(i).rFwdVel));
         title('Rev kernel - Fwd Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 5);
-        plot(kT, kernelsIndiv(i).rYawVel);
+        plot(lags, fliplr(kernelsIndiv(i).rYawVel));
         title('Rev kernel - Yaw Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 6);
-        plot(kT, kernelsIndiv(i).rYawSpd);
+        plot(lags, fliplr(kernelsIndiv(i).rYawSpd));
         title('Rev kernel - Yaw Speed');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
     end
     
@@ -173,82 +183,95 @@ function extractAllKernels(winLen, lowpassCutoff, sampRate)
         figure; 
         
         subplot(2, 3, 1);
-        plot(kT, kernelsSum.fFwdVel);
+        plot(lags, kernelsSum.fFwdVel);
         title('Fwd kernel - Fwd Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 2);
-        plot(kT, kernelsSum.fYawVel);
+        plot(lags, kernelsSum.fYawVel);
         title('Fwd kernel - Yaw Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 3);
-        plot(kT, kernelsSum.fYawSpd);
+        plot(lags, kernelsSum.fYawSpd);
         title('Fwd kernel - Yaw Speed');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 4);
-        plot(kT, kernelsSum.rFwdVel);
+        plot(lags, fliplr(kernelsSum.rFwdVel));
         title('Rev kernel - Fwd Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 5);
-        plot(kT, kernelsSum.rYawVel);
+        plot(lags, fliplr(kernelsSum.rYawVel));
         title('Rev kernel - Yaw Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 6);
-        plot(kT, kernelsSum.rYawSpd);
+        plot(lags, fliplr(kernelsSum.rYawSpd));
         title('Rev kernel - Yaw Speed');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         figure; 
         
         subplot(2, 3, 1);
-        plot(kT, kernelsDiff.fFwdVel);
+        plot(lags, kernelsDiff.fFwdVel);
         title('Fwd kernel - Fwd Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 2);
-        plot(kT, kernelsDiff.fYawVel);
+        plot(lags, kernelsDiff.fYawVel);
         title('Fwd kernel - Yaw Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 3);
-        plot(kT, kernelsDiff.fYawSpd);
+        plot(lags, kernelsDiff.fYawSpd);
         title('Fwd kernel - Yaw Speed');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 4);
-        plot(kT, kernelsDiff.rFwdVel);
+        plot(lags, fliplr(kernelsDiff.rFwdVel));
         title('Rev kernel - Fwd Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 5);
-        plot(kT, kernelsDiff.rYawVel);
+        plot(lags, fliplr(kernelsDiff.rYawVel));
         title('Rev kernel - Yaw Velocity');
         xlabel('time (s)');
+        xlim([-1*winLen, winLen]);
         
         subplot(2, 3, 6);
-        plot(kT, kernelsDiff.rYawSpd);
+        plot(lags, fliplr(kernelsDiff.rYawSpd));
         title('Rev kernel - Yaw Speed');
-        xlabel('time (s)');        
+        xlabel('time (s)'); 
+        xlim([-1*winLen, winLen]);
     end
     
     % save kernel parameters in struct
-    kernelParams.t = kT;
+    kernelParams.t = lags;
     kernelParams.winLen = winLen;
-    kernelParams.lowpassCutoff = lowpassCutoff;
+    kernelParams.cutFreq = cutFreq;
+    kernelParams.tauFreq = tauFreq;
     kernelParams.sampRate = sampRate;
     
     % save kernels into pData file
-    if (numROIs == 2)
-        save('pData.mat', 'kernelsIndiv', 'kernelsSum', 'kernelsDiff', ...
-        	'kernelParams', '-append');
-        disp('Saved!');
-    else
-        save('pData.mat', 'kernelsIndiv', 'kernelParams', '-append');
-        disp('Saved!');
-    end  
+%     if (numROIs == 2)
+%         save('pData.mat', 'kernelsIndiv', 'kernelsSum', 'kernelsDiff', ...
+%         	'kernelParams', '-append');
+%         disp('Saved!');
+%     else
+%         save('pData.mat', 'kernelsIndiv', 'kernelParams', '-append');
+%         disp('Saved!');
+%     end  
     cd(curDir);
 end
