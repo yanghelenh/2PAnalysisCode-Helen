@@ -22,10 +22,7 @@ function uThreshSelectROIs()
     clc
     
     % prompt for trial folder
-    disp('Select a trial folder to preprocess.');
-    uTrialPath = uigetdir;
-    
-    fprintf('Processing %s \n', uTrialPath);
+    [uTrialPath, curDir] = userSelectTrial();
     
     % check that selected folder has imDat.mat file
     trialPathFiles = dir(uTrialPath);
@@ -33,7 +30,6 @@ function uThreshSelectROIs()
     hasImDat = sum(strcmp(trialPathFileNames, 'imDat.mat'));
     
     if (hasImDat) % has appropriate file
-        curDir = pwd;
         cd(uTrialPath);
         
         % get variables in imDat

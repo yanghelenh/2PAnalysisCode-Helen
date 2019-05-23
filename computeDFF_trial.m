@@ -1,4 +1,4 @@
-% computeDFF_user.m
+% computeDFF_trial.m
 %
 % Function that converts background-subtracted fluorescence signal into
 %  dF/F (for 1 channel data) or dR/R (for 2 channel data) for user selected
@@ -8,7 +8,7 @@
 %  new one.
 %
 % INPUTS:
-%   none - but prompts user for trial path
+%   trialPath - full path to trial folder to compute dF/F
 %
 % OUTPUTS:
 %   None, but creates pData.mat file to save dF/F, timing, and # of
@@ -18,10 +18,9 @@
 % UPDATED: 5/21/19 HHY
 %
 
-function computeDFF_user()
+function computeDFF_trial(trialPath)
 
-    [uTrialPath, curDir] = userSelectTrial();
-    cd(uTrialPath)
+    cd(trialPath)
     
     % check that selected folder has imDat.mat file
     trialPathFiles = dir(uTrialPath);

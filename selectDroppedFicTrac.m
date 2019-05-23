@@ -11,7 +11,7 @@
 %   none, but saves dropInd variable into fictracDat.mat
 %
 % Created: 3/26/19 HHY
-% Updated: 3/26/19 HHY
+% Updated: 5/21/19 HHY
 %
 
 function selectDroppedFicTrac()
@@ -19,12 +19,8 @@ function selectDroppedFicTrac()
     T_RANGE = 50; % how many seconds of FicTrac data to display at once
 
     % ask user to select trial folder
-    disp('Select a trial folder analyze.');
-    uTrialPath = uigetdir;
-    curDir = pwd;
+    [uTrialPath, curDir] = userSelectTrial();
     cd(uTrialPath)
-    
-    fprintf('Selecting FicTrac dropped times in \n%s \n', uTrialPath);
     
     % check that selected folder has fictracDat.mat file
     trialPathFiles = dir(uTrialPath);
