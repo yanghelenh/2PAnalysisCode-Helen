@@ -31,7 +31,18 @@ function [varExpl, fitObj] = computeVarianceExplained(actResp, predResp,...
     if (~iscolumn(predResp))
         predResp = predResp';
     end
-
+    
+    % remove NaN values from actResp and predResp
+    % gets indicies of segments with at least 1 NaN
+    actNaNs = find(isnan(actResp)); 
+    predNaNs = find(isnan(predResp));
+    % segments that have NaNs in input or output or both
+    nanInd = union(actNaNs, predNaNs);
+    
+    % remove segments with NaNs
+    actResp(nanInd) = [];
+    predResp(nanInd) = [];
+    
     [fitObj, gof] = fit(predResp, actResp, fittype(modelType));
     
     varExpl = gof.rsquare;

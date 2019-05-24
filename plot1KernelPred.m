@@ -8,12 +8,13 @@
 % INPUTS:
 %   kernel 
 %   lags - time points for kernel
+%   inv - flag for whether to invert kernel relative to lags
 %   predResp - predicted response
 %   measResp - measured response
 %   respT - time points for predicted and measured responses
 %   fitobj - fit object for best fit line
 %   varExpl - variance explained
-%   title - plot title
+%   ttl - plot title
 %
 % OUTPUTS:
 %   f - figure handle
@@ -23,9 +24,13 @@
 % UPDATED: 5/23/19
 %
 
-function f = plot1KernelPred(kernel, lags, predResp, measResp, respT, ...
-    fitobj, varExpl, title)
+function f = plot1KernelPred(kernel, lags, inv, predResp, measResp, ...
+    respT, fitObj, varExpl, ttl)
     
+    if inv
+        kernel = fliplr(kernel);
+    end
+
     f = figure;
     
     % plot kernel
@@ -35,7 +40,10 @@ function f = plot1KernelPred(kernel, lags, predResp, measResp, respT, ...
     
     % plot scatterplot of predicted vs. measured and best fit line
     subplot(2,2,2);
-    plot(fitobj, predResp, measResp);
+    scatter(predResp, measResp, 'Marker', '.', 'MarkerFaceAlpha',0.05, ...
+        'MarkerEdgeAlpha', 0.05);
+    hold on;
+    plot(fitObj);
     legend('hide');
     xlabel('Predicted');
     ylabel('Measured');
@@ -43,13 +51,12 @@ function f = plot1KernelPred(kernel, lags, predResp, measResp, respT, ...
     
     % plot actual predicted and measured responses
     subplot(2,2,[3,4]);
-    hMeas = plot(respT, measResp, 'b'); % measured response in blue
+    plot(respT, measResp, 'b'); % measured response in blue
     hold on;
-    hPred = plot(respT, predResp, 'r'); % predicted response in red
+    plot(respT, predResp, 'r'); % predicted response in red
     xlabel('Time (s)');
-    ylabel('dF/F');
-    legend({hMeas, hPred}, 'Measured', 'Predicted');
+    legend('Measured', 'Predicted');
     
     % title for whole plot
-    suptitle(title);
+    suptitle(ttl);
 end

@@ -3,6 +3,7 @@
 % Function that uses linear filter and input signal to produce an predicted
 %  output by convolution.
 % Filter and input must be on same time basis.
+% Run after running computeWienerKernel()
 % NOTE: NaNs okay in input, just means that predicted output will also have
 %   NaNs
 %

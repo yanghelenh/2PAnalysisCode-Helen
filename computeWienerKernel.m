@@ -85,7 +85,7 @@ function [kernel, lags] = computeWienerKernel(input, output, sampRate, ...
     if ((cutFreq > 0) && (tauFreq > 0))
         % actual frequencies for first half
         halfFreq = sampRate * (0:(n/2))/n;    
-        % actual frequencies for whole fft
+        % frequencies for whole fft, absolute value of
         freq = [halfFreq(1:(end-1)) fliplr(halfFreq(1:(end-1)))];
         
         % weights at each frequency, following e^(-|w-f_cut|/f_tau) for 
