@@ -44,16 +44,26 @@ function extractAllKernels(trialPath, winLen, cutFreq, tauFreq, ...
     hasFTDat = sum(strcmp(trialPathFileNames, 'fictracDat.mat'));
     
     if (hasPDat && hasFTDat)
-        fprintf('Kernels for \n%s \n', trialPath);
+%         fprintf('Kernels for \n%s \n', trialPath);
         
         % load relevant data
 %         load('pData.mat', 'dFFs', 'frameStartTimes');
         
         % temporarily, to overwrite old kernels saved in pData; when done,
         %  replace with previous line
-        load('pData.mat', 'dFFs', 'frameStartTimes','numChannels');
+        if (isempty(who('-file', 'pData.mat', 'dFFs')))
+            fprintf('%s \nlacks dF/F\n', trialPath);
+            return;
+        else
+            load('pData.mat', 'dFFs', 'frameStartTimes','numChannels');
+        end
         
-        load('fictracDat.mat', 'dropInd', 'fwdVel', 't', 'yawAngVel');
+        if (isempty(who('-file', 'fictracDat.mat', 'dropInd')))
+            fprintf('%s \nlacks FicTrac dropInd\n', trialPath);
+            return;
+        else
+            load('fictracDat.mat', 'dropInd', 'fwdVel', 't', 'yawAngVel');
+        end
         
         % temporarily test timing with frameEndTimes
 %         load('imDat.mat','frameEndTimes');
@@ -261,128 +271,6 @@ function extractAllKernels(trialPath, winLen, cutFreq, tauFreq, ...
                 kernels(4).rYawSpd.predResp, 'poly1');   
         end
 
-
-        if doDisp
-            % generate plots
-            for i = 1:numROIs
-                figure;
-                subplot(2, 3, 1);
-                plot(lags, kernelsIndiv(i).fFwdVel);
-                title('Fwd kernel - Fwd Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 2);
-                plot(lags, kernelsIndiv(i).fYawVel);
-                title('Fwd kernel - Yaw Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 3);
-                plot(lags, kernelsIndiv(i).fYawSpd);
-                title('Fwd kernel - Yaw Speed');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 4);
-                plot(lags, fliplr(kernelsIndiv(i).rFwdVel));
-                title('Rev kernel - Fwd Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 5);
-                plot(lags, fliplr(kernelsIndiv(i).rYawVel));
-                title('Rev kernel - Yaw Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 6);
-                plot(lags, fliplr(kernelsIndiv(i).rYawSpd));
-                title('Rev kernel - Yaw Speed');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-            end
-
-            if (numROIs == 2)
-                figure; 
-
-                subplot(2, 3, 1);
-                plot(lags, kernelsSum.fFwdVel);
-                title('Fwd kernel - Fwd Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 2);
-                plot(lags, kernelsSum.fYawVel);
-                title('Fwd kernel - Yaw Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 3);
-                plot(lags, kernelsSum.fYawSpd);
-                title('Fwd kernel - Yaw Speed');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 4);
-                plot(lags, fliplr(kernelsSum.rFwdVel));
-                title('Rev kernel - Fwd Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 5);
-                plot(lags, fliplr(kernelsSum.rYawVel));
-                title('Rev kernel - Yaw Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 6);
-                plot(lags, fliplr(kernelsSum.rYawSpd));
-                title('Rev kernel - Yaw Speed');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                figure; 
-
-                subplot(2, 3, 1);
-                plot(lags, kernelsDiff.fFwdVel);
-                title('Fwd kernel - Fwd Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 2);
-                plot(lags, kernelsDiff.fYawVel);
-                title('Fwd kernel - Yaw Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 3);
-                plot(lags, kernelsDiff.fYawSpd);
-                title('Fwd kernel - Yaw Speed');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 4);
-                plot(lags, fliplr(kernelsDiff.rFwdVel));
-                title('Rev kernel - Fwd Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 5);
-                plot(lags, fliplr(kernelsDiff.rYawVel));
-                title('Rev kernel - Yaw Velocity');
-                xlabel('time (s)');
-                xlim([-1*winLen, winLen]);
-
-                subplot(2, 3, 6);
-                plot(lags, fliplr(kernelsDiff.rYawSpd));
-                title('Rev kernel - Yaw Speed');
-                xlabel('time (s)'); 
-                xlim([-1*winLen, winLen]);
-            end
-        end
-
         % save kernel parameters in struct
         kernelParams.t = lags;
         kernelParams.winLen = winLen;
@@ -401,6 +289,15 @@ function extractAllKernels(trialPath, winLen, cutFreq, tauFreq, ...
         kernelResampInputs.yawAngVel = yawAngVelRS;
         kernelResampInputs.yawAngSpd = yawAngSpdRS;
 
+        % plotting
+        if doDisp
+            % plot single figure with all kernels
+            plotAllKernels(kernels, kernelParams, trialPath);
+            
+            % plot all kernels with predicted responses (generates 24 plots
+            %  when there are 2 ROIs
+            plotAllKernelPred(kernels, kernelParams, kernelResampInputs);
+        end
         
         % save kernels into pData file
 %         save('pData.mat', 'kernels', 'kernelParams', ...
@@ -412,12 +309,12 @@ function extractAllKernels(trialPath, winLen, cutFreq, tauFreq, ...
         save('pData.mat', 'kernels', 'kernelParams', ...
             'kernelResampInputs', 'dFFs', 'frameStartTimes', ...
             'numChannels', '-v7.3');
-        disp('Saved!');
+%         disp('Saved!');
         
         cd(curDir);
     else
-        disp(['Selected trial folder does not contain pDat.mat file' ...
-            ' and/or fictracDat.mat']);
+        fprintf(['%s \n does not contain pData.mat file' ...
+            ' and/or fictracDat.mat \n'], trialPath);
         cd(curDir);
         return;
     end
