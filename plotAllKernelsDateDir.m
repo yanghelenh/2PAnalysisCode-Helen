@@ -1,4 +1,18 @@
-    
+% plotAllKernelsDateDir()
+%
+% Function to plot all kernels given either cell array of paths to date
+% directories or uses user selected single date dir.
+%
+% INPUT:
+%   dateFolderPaths - [] if gui to select one date folder; otherwise,
+%       cell array of full paths to date folders
+%
+% OUTPUT:
+%   none but generates plots
+%
+% CREATED: 5/24/19
+% UPDATED: 5/24/19
+%
 
 function plotAllKernelsDateDir(dateFolderPaths)
 

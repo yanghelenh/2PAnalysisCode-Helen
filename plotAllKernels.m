@@ -74,13 +74,13 @@ function f = plotAllKernels(kernels, kernelParams, ttl)
         xlabel('Time (s)');
         xlim([-1*kernelParams.winLen kernelParams.winLen]);
         
-        if (strcmpi(kernelFields{i}, 'fFwdVel'))
-            ylim([-2e-4 6e-4]);
-        elseif (strcmpi(kernelFields{i}, 'fYawVel'))
-            ylim([-2e-5 4e-5]);
-        elseif (strcmpi(kernelFields{i}, 'rYawVel'))
-            ylim([-40 60]);
-        end
+%         if (strcmpi(kernelFields{i}, 'fFwdVel'))
+%             ylim([-2e-4 6e-4]);
+%         elseif (strcmpi(kernelFields{i}, 'fYawVel'))
+%             ylim([-2e-5 4e-5]);
+%         elseif (strcmpi(kernelFields{i}, 'rYawVel'))
+%             ylim([-40 60]);
+%         end
         y = ylim;
         
         % x-axis line

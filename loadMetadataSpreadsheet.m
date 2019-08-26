@@ -1,0 +1,54 @@
+% loadMetadataSpreadsheet.m
+%
+% Function to load information in metadata spreadsheet into a data struct, 
+%  to allow selection of specific subset of data for analysis.
+%
+% INPUT:
+%   none - but brings up GUI to allow user to select metadata spreadsheet
+%
+% OUTPUT:
+%   metaDat - struct of metadata
+% 
+% CREATED: 8/24/19 - HHY
+%
+% UPDATED: 8/24/19 - HHY
+%
+
+function metaDat = loadMetadataSpreadsheet()
+
+    % get metadata spreadsheet path
+    disp('Select metadata spreadsheet for experiment');
+    [sprdshtName, sprdshtPath] = uigetfile('*.xlsx', ...
+        'Select metadata spreadsheet');
+    sprdshtFullPath = [sprdshtPath filesep sprdshtName];
+    
+    % get information about spreadsheet
+    opts = detectImportOptions(sprdshtFullPath);
+    
+    % change options to import relevant metadata (exclude freeform comments
+    %  fields) in correct format
+    opts.SelectedVariableNames = opts.VariableNames([1:5, 7:12, 14]);
+    
+    opts = setvartype(opts,'Age',{'char'}); 
+    opts = setvaropts(opts,'Exclude','FillValue',0);
+    
+    % read in spreadsheet as table
+    sprdsht = readtable(sprdshtFullPath, opts);
+    
+    % convert to struct
+    for i = 1:size(sprdsht,2)
+        metaDat.(sprdsht.Properties.VariableNames{i}) = table2cell(...
+            sprdsht(:,i));
+    end
+    
+    % convert Age back to numerical values
+    for i = 1:length(metaDat.Age)
+        metaDat.Age{i} = str2num(metaDat.Age{i});
+    end
+    
+    % convert FlyID, Temperature, Exclude to normal arrays
+    metaDat.FlyID = cell2mat(metaDat.FlyID);
+    metaDat.Temperature = cell2mat(metaDat.Temperature);
+    metaDat.Exclude = cell2mat(metaDat.Exclude);
+
+end

@@ -19,11 +19,13 @@
 %
 
 function computeDFF_trial(trialPath)
+    
+    curDir = pwd;
 
     cd(trialPath)
     
     % check that selected folder has imDat.mat file
-    trialPathFiles = dir(uTrialPath);
+    trialPathFiles = dir(trialPath);
     trialPathFileNames = extractfield(trialPathFiles, 'name');
     hasImDat = sum(strcmp(trialPathFileNames, 'imDat.mat'));
     
