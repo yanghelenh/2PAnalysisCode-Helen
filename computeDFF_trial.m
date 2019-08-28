@@ -16,6 +16,7 @@
 %
 % CREATED: 3/7/19 HHY
 % UPDATED: 5/21/19 HHY
+%   8/27/19 - OBSOLETE - works but is no longer in analysis pipeline
 %
 
 function computeDFF_trial(trialPath)

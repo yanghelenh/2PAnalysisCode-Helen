@@ -13,6 +13,7 @@
 %
 % CREATED: 7/30/19
 % UPDATED: 7/30/19
+%   8/27/19 - OBSOLETE - works but is no longer in analysis pipeline
 %
 
 function computeDFF_all(dateFolderPaths)

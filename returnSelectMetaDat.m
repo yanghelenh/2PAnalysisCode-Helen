@@ -13,7 +13,7 @@
 % INPUTS:
 %   metaDat - metadata struct, output of loadMetadataSpreadsheet.m
 %   vars - metaDat variable(s) to filter on
-%   cond - conditions to filter on
+%   conds - conditions to filter on
 %
 % OUTPUTS:
 %   inds - indicies of selected data (into metaDat struct's fields
@@ -24,7 +24,7 @@
 % UPDATED: 8/26/19 - HHY
 %
 
-function [inds, filtMetaDat] = returnSelectMetaDat(metaDat, vars, cond)
+function [inds, filtMetaDat] = returnSelectMetaDat(metaDat, vars, conds)
 
     % preallocate logical array, start with all elements of metaDat
     logicalDat = ones(size(metaDat.ExperimentName));
@@ -66,7 +66,7 @@ function [inds, filtMetaDat] = returnSelectMetaDat(metaDat, vars, cond)
     end
     
     % convert logical to indicies
-    ind = find(logicalDat);
+    inds = find(logicalDat);
     
     % metaDat with only selected data
     metaDatFields = fieldnames(metaDat);

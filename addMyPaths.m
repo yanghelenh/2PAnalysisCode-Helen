@@ -26,6 +26,13 @@ function addMyPaths()
 %     metadataPath = '/Users/hyang/Documents/2PAnalysis-Helen';
     metadataPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen';
     addpath(genpath(metadataPath));
+    
+    %% Python functions, add to python system path
+    a2libPath = '/Users/hyang/Documents/2PAnalysisCode-Helen/a2lib';
+    P = py.sys.path;
+    if count(P,a2libPath) == 0
+        insert(P,int32(0),a2libPath);
+    end
 
     %% Folder containing processed data (*_pdata.mat files)
     % pDataPath = '/Users/hyang/Documents/2PAnalysis-Helen/pData';
