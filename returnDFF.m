@@ -100,6 +100,7 @@ function [dFF, t, numChannels, numROIs, avgImg, roiMasks] = returnDFF(...
     
     % convert dFFs to dFF struct, label left and right cell appropriately
     if (numROIs == 1)
+        disp(trialPath);
         prompt = 'Is the single ROI the left or right cell? (L/R) ';
         ui = input(prompt,'s');
         if (strcmpi(ui, 'L'))

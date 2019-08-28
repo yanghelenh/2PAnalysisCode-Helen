@@ -51,10 +51,11 @@
 %       mmPerDeg - millimeters per degree, conversion factor
 %   exptCond - experiment type, as string
 %   name - struct containing name info for trial, all strings
+%       dateName
 %       flyName
 %       fovName
 %       trialName
-%       expName - full experiment name DATE_fly##_fov##_trial##
+%       exptName - full experiment name DATE_fly##_fov##_trial##
 %
 % CREATED: 8/27/19 - HHY
 % UPDATED: 8/27/19 - HHY
@@ -135,6 +136,12 @@ function computePData_trial(trialPath)
         
         % downsample and smooth FicTrac data, updates fictrac struct
         fictrac = dsFiltFictrac(trialPath, fictrac);
+        
+        % get experimental condition
+        load('userDaqDat.mat', 'exptCond');
+        
+        % make name struct
+        name = getExptName(trialPath);
         
         % save data, overrides any previous pData file
         save('pData.mat', 'img', 'fictrac', 'exptCond', 'name', '-v7.3');

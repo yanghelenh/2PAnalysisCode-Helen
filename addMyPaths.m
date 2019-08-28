@@ -35,7 +35,6 @@ function addMyPaths()
     end
 
     %% Folder containing processed data (*_pdata.mat files)
-    % pDataPath = '/Users/hyang/Documents/2PAnalysis-Helen/pData';
-    % addpath(pDataPath);
+    addpath(pDataPath());
 
 end
