@@ -22,6 +22,7 @@
 % CREATED: 8/24/19 - HHY
 %
 % UPDATED: 8/26/19 - HHY
+%   8/28/19 - HHY - fixed bugs with eval statements
 %
 
 function [inds, filtMetaDat] = returnSelectMetaDat(metaDat, vars, conds)
@@ -37,12 +38,12 @@ function [inds, filtMetaDat] = returnSelectMetaDat(metaDat, vars, conds)
             if strcmpi(vars{i}, 'Age')
                 logOut = zeros(size(metaDat.Age));
                 for j = 1:length(metaDat.Age)
-                    output = eval([metaDat.Age{j} conds{i}]);
+                    output = eval(['metaDat.Age{j}' conds{i}]);
                     logOut(j) = logical(prod(output));
                 end
             % if the field is one of the numerical fields
             elseif strcmpi(class(metaDat.(vars{i})), 'double')
-                logOut = eval([metaDat.(vars{i}) conds{i}]);
+                logOut = eval(['metaDat.' vars{i} conds{i}]);
             % field is one of the string fields
             else
                 logOut = strcmpi(metaDat.(vars{i}), conds{i});
@@ -55,11 +56,11 @@ function [inds, filtMetaDat] = returnSelectMetaDat(metaDat, vars, conds)
         if strcmpi(vars, 'Age')
             logicalDat = zeros(size(metaDat.Age));
             for j = 1:length(metaDat.Age)
-                output = eval([metaDat.Age{j} conds]);
+                output = eval(['metaDat.Age{j}' conds]);
                 logicalDat(j) = logical(prod(output));
             end
         elseif strcmpi(class(metaDat.(vars)), 'double')
-            logicalDat = eval([metaDat.(vars) conds]);
+            logicalDat = eval(['metaDat.' vars conds]);
         else
             logicalDat = strcmpi(metaDat.(vars), conds);
         end
@@ -73,9 +74,10 @@ function [inds, filtMetaDat] = returnSelectMetaDat(metaDat, vars, conds)
     
     % loop through all fields, copy them into filtMetaDat, only selected
     %  data
+    
     for i = 1:length(metaDatFields)
         filtMetaDat.(metaDatFields{i}) = ...
-            metaDat.(metaDatFields{i})(logicalDat);
+            metaDat.(metaDatFields{i})(inds);
     end
 
 end

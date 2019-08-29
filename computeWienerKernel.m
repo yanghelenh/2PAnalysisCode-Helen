@@ -29,13 +29,15 @@
 % OUTPUT:
 %   kernel - time-domain estimate of kernel
 %   lags - time points for each kernel value, in seconds
+%   numSeg - number of segments used to compute kernel
 %
 % CREATED: 4/1/19
 % UPDATED: 5/21/19 - HHY
+%   8/28/19 - HHY - also return numSeg
 %
 
-function [kernel, lags] = computeWienerKernel(input, output, sampRate, ...
-    winLen, cutFreq, tauFreq)
+function [kernel, lags, numSeg] = computeWienerKernel(input, output, ...
+    sampRate, winLen, cutFreq, tauFreq)
 
     winSamps = floor(winLen * sampRate);
 

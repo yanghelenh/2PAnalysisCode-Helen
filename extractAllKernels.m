@@ -30,6 +30,7 @@
 % CREATED: 4/15/19 HHY
 % UPDATED: 5/23/19 HHY
 %   8/28/19 - OBSOLETE - works but is no longer in analysis pipeline
+%   8/29/19 - OBSOLETE - fails b/c of change in computeWienerKernel()
 %
 
 function extractAllKernels(trialPath, winLen, cutFreq, tauFreq, ...
