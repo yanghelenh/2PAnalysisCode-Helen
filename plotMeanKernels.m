@@ -11,20 +11,23 @@
 %   kernelParams - kernel parameters struct
 %   allYLims - cell array of yLims for all subplots, if [], let matlab
 %       scale
+%   yLbls - y-labels for all subplots
 %   ttl - title for whole plot
+%   degPerMM - conversion factor between mm and degrees; if 0, don't convert
 %   withSEM - boolean for whether to include error shading
 %   withIndiv - boolean for whether to include individual flies
+%   flipRev - boolean for whether to flip reverse kernel time basis
 %
 % OUTPUT:
 %   f - handle to figure
 %   also produces plot
 %
 % CREATED: 8/28/19 - HHY
-% UPDATED: 8/28/19 - HHY
+% UPDATED: 8/29/19 - HHY
 %
 
 function f = plotMeanKernels(kernels, kernelParams, allYLims, ttl, ...
-    withSEM, withIndiv)
+    yLbls, degPerMM, withSEM, withIndiv, flipRev)
     % get all fields in kernels struct (which kernels computed)
     kFN = fieldnames(kernels);
 
@@ -41,8 +44,8 @@ function f = plotMeanKernels(kernels, kernelParams, allYLims, ttl, ...
     for i = 1:numSubplots
         whichSubplot = i;
         
-        % flip axis for reverse kernels
-        if (kFN{i}(1) == 'r')
+        % optionally flip axis for reverse kernels
+        if ((kFN{i}(1) == 'r') && flipRev)
             lags = -1 * kernelParams.t;
         else
             lags = kernelParams.t;
@@ -56,23 +59,37 @@ function f = plotMeanKernels(kernels, kernelParams, allYLims, ttl, ...
         
         
         for j = 1:length(cFN)
-            if withSEM
-                lineHand(j) = plot_err_patch_v2(lags, ...
-                    kernels.(kFN{i}).(cFN{j}).meanKernel, ...
-                    kernels.(kFN{i}).(cFN{j}).sem, cmap(j,:) * 0.8, ...
-                    cmap(j,:));
+            if (degPerMM) && ...
+                    (~isempty(strfind(kFN{i},'Fwd'))||...
+                    ~isempty(strfind(kFN{i},'Slide')))
+                if (kFN{i}(1) == 'r') 
+                    meanKernel = kernels.(kFN{i}).(cFN{j}).meanKernel .* degPerMM;
+                    sem = kernels.(kFN{i}).(cFN{j}).sem .* degPerMM;
+                    allKernels = kernels.(kFN{i}).(cFN{j}).allKernels .* degPerMM;
+                elseif (kFN{i}(1) == 'f')
+                    meanKernel = kernels.(kFN{i}).(cFN{j}).meanKernel ./ degPerMM;
+                    sem = kernels.(kFN{i}).(cFN{j}).sem ./ degPerMM;
+                    allKernels = kernels.(kFN{i}).(cFN{j}).allKernels ./ degPerMM;
+                end
             else
-                lineHand(j) = plot(lags, ...
-                    kernels.(kFN{i}).(cFN{j}).meanKernel, ...
-                    'Color', cmap(j,:), 'LineWidth', 1.5);
+                meanKernel = kernels.(kFN{i}).(cFN{j}).meanKernel;
+                sem = kernels.(kFN{i}).(cFN{j}).sem;
+                allKernels = kernels.(kFN{i}).(cFN{j}).allKernels;
+            end
+            
+            if withSEM
+                lineHand(j) = plot_err_patch_v2(lags, meanKernel, sem, ...
+                    cmap(j,:) * 0.8, cmap(j,:));
+            else
+                lineHand(j) = plot(lags, meanKernel, 'Color', ...
+                    cmap(j,:), 'LineWidth', 1.5);
             end
             
             hold on;
             
             if withIndiv
-                plot(lags, ...
-                    kernels.(kFN{i}).(cFN{j}).allKernels, ...
-                    'Color', cmap(j,:), 'LineWidth', 0.3);
+                plot(lags, allKernels, 'Color', cmap(j,:), ...
+                    'LineWidth', 0.3);
             end
             
             legendTxt{j} = sprintf('%s %.2f (%d)', cFN{j}, ...
@@ -97,9 +114,10 @@ function f = plotMeanKernels(kernels, kernelParams, allYLims, ttl, ...
         % y-axis line
         line([0,0], y, 'Color', 'black');
         ylim(y);
+        ylabel(yLbls{i});
         
         title(kFN{i});
-        legend(lineHand, legendTxt);
+        legend(lineHand, legendTxt, 'Location', 'best');
        
         
     end
