@@ -58,7 +58,9 @@
 %       exptName - full experiment name DATE_fly##_fov##_trial##
 %
 % CREATED: 8/27/19 - HHY
-% UPDATED: 8/27/19 - HHY
+% UPDATED: 
+%   8/27/19 - HHY
+%   9/4/19 - HHY - flips left/right assignment for head inverted prep
 
 function computePData_trial(trialPath)
 
@@ -105,6 +107,28 @@ function computePData_trial(trialPath)
         % compute dF/F
         [dFF, t, numChannels, numROIs, avgImg, roiMasks] = ...
             returnDFF(trialPath);
+            
+        % get experimental condition, prep type
+        load('userDaqDat.mat', 'exptCond', 'flyData');
+        
+        % check if head inverted prep, if so, flip left and right and
+        %  invert difference for dFF; otherwise, leave same
+        headInverted = contains(flyData.prepType, 'invert');
+        
+        % flip all the fields, only if they exist
+        if (headInverted)
+            if (isfield(dFF, 'left'))
+                dFFNew.right = dFF.left;
+            end
+            if (isfield(dFF, 'right'))
+                dFFNew.left = dFF.right;
+            end
+            if (isfield(dFF, 'diff'))
+                dFFNew.diff = dFF.diff .* -1;
+                dFFNew.sum = dFF.sum;
+            end
+            dFF = dFFNew; % rename
+        end
 
         % gaussian process smooth dF/F
         dFFfieldNames = fieldnames(dFF);
@@ -124,7 +148,7 @@ function computePData_trial(trialPath)
 
             filtDFF.(dFFfieldNames{i}) = gpSmo;
         end
-
+              
         % save imaging data into struct
         img.dFF = dFF;
         img.filtDFF = filtDFF;
@@ -136,10 +160,7 @@ function computePData_trial(trialPath)
         
         % downsample and smooth FicTrac data, updates fictrac struct
         fictrac = dsFiltFictrac(trialPath, fictrac);
-        
-        % get experimental condition
-        load('userDaqDat.mat', 'exptCond');
-        
+
         % make name struct
         name = getExptName(trialPath);
         

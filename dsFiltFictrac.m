@@ -62,6 +62,7 @@ function fictrac = dsFiltFictrac(trialPath, fictrac)
     ftSampRate = 1/median(diff(tDS));
 
     dropIndDS = unique(round(dropInd ./ fictrac.dsf));
+    
     % remove any zeros from dropIndDS
     dropIndDS(dropIndDS < 1) = [];
     

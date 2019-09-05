@@ -24,6 +24,8 @@
 %           forward kernels post-hoc
 %       revKernelBW - full bandwidth of Slepian window filter applied to
 %           reverse kernels post-hoc
+%   autoCorrParams - struct of autocorrelation parameters
+%       maxLag - maximum lag for autocorrelation, in seconds
 %   
 % OUTPUT:
 %   kernels - struct with all the kernel data
@@ -37,20 +39,26 @@
 %           x 1 vector)
 %   kernelParams - struct of kernel parameters (as input, but adds)
 %       t - kernel times in sec
+%   autoCorrParams - struct of kernel parameters (as input, but adds)
+%       sampRate - sampling rate autocorrelation was computed at, is equal
+%           to kernelParams.sampRate
+%       lags - autocorrelation times in sec
 %   autoCorr - struct with all of the autocorrelation data
-%       caLeft, caRight, caSum, caDiff, fwdVel, yawVel, slideVel, yawSpd,
-%           totSpd
+%       imgLeft, imgRight, imgSum, imgDiff, FwdVel, YawVel, SlideVel,
+%           YawSpd, TotSpd
 %       for each of the above fields: allAutoCorr, flyID, meanAutoCorr,
 %           sem, numFlies
 %   exptNames - cell array of experiment names that went into this data
 %
 % CREATED: 8/28/19 - HHY
 %
-% UPDATED: 8/28/19 - HHY
+% UPDATED: 
+%   8/28/19 - HHY
+%   9/4/19 - HHY - added computation of autocorrelations
 %
 
-function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
-    selMetaDat, pdPath, kernelParams)
+function [kernels, autoCorr, exptNames, kernelParams, autoCorrParams] = ...
+    extractKernels(selMetaDat, pdPath, kernelParams, autoCorrParams)
 
     curDir = pwd;
     cd(pdPath);
@@ -61,11 +69,18 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
     
     % experiment names
     exptNames = selMetaDat.ExperimentName;
+    
+    % set autocorrelation sampling rate to same as kernel sampling rate
+    autoCorrParams.sampRate = kernelParams.sampRate;
 
     % preallocate
     flyIDs = unique(selMetaDat.FlyID);
     numFlies = length(flyIDs);
     kernelLen = (kernelParams.sampRate * 2*kernelParams.winLen) - 1;
+    % max lag of autocorrelation, in samples
+    autoCorrMaxLagSamp = (autoCorrParams.maxLag * autoCorrParams.sampRate);
+    % length of autocorrelation is 1 more than max lag
+    autoCorrLen = autoCorrMaxLagSamp + 1;
     
     % struct structure for left, right, sum, diff fields
     oneCellStrct.allKernels = zeros(numFlies, kernelLen);
@@ -92,6 +107,22 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
     kernels.rSlideVel = oneKernelCondStrct;
     kernels.rYawSpd = oneKernelCondStrct;
     kernels.rTotSpd = oneKernelCondStrct;
+    
+    oneVarACStrct.allAutoCorr = zeros(numFlies, autoCorrLen);
+    oneVarACStrct.flyID = zeros(numFlies, 1);
+    oneVarACStrct.meanAutoCorr = zeros(1, autoCorrLen);
+    oneVarACStrct.sem = zeros(1, autoCorrLen);
+    oneVarACStrct.numFlies = numFlies;
+    
+    autoCorr.left = oneVarACStrct;
+    autoCorr.right = oneVarACStrct;
+    autoCorr.sum = oneVarACStrct;
+    autoCorr.diff = oneVarACStrct;
+    autoCorr.FwdVel = oneVarACStrct;
+    autoCorr.YawVel = oneVarACStrct;
+    autoCorr.SlideVel = oneVarACStrct;
+    autoCorr.YawSpd = oneVarACStrct;
+    autoCorr.TotSpd = oneVarACStrct;
 
     % loop through all selected flies
     for i = 1:numFlies
@@ -127,6 +158,20 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
         oneFlyKernel.rSlideVel = oneCellCondStrct;
         oneFlyKernel.rYawSpd = oneCellCondStrct;
         oneFlyKernel.rTotSpd = oneCellCondStrct;
+        
+        % preallocate for autocorrelation
+        oneTrialACStrct.validTime = zeros(numTrials,1);
+        oneTrialACStrct.allTrialAutoCorr = zeros(numTrials, autoCorrLen);
+        
+        oneFlyAutoCorr.left = oneTrialACStrct;
+        oneFlyAutoCorr.right = oneTrialACStrct;
+        oneFlyAutoCorr.sum = oneTrialACStrct;
+        oneFlyAutoCorr.diff = oneTrialACStrct;
+        oneFlyAutoCorr.FwdVel = oneTrialACStrct;
+        oneFlyAutoCorr.YawVel = oneTrialACStrct;
+        oneFlyAutoCorr.SlideVel = oneTrialACStrct;
+        oneFlyAutoCorr.YawSpd = oneTrialACStrct;
+        oneFlyAutoCorr.TotSpd = oneTrialACStrct;
         
         % loop through all trials for this fly
         for j = 1:numTrials
@@ -185,6 +230,7 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
 
                         % if this trial has this img type
                         if (sum(strcmpi(dffFieldNames, cellFieldNames{l}))) 
+                            
                             % compute forward kernel
                             [tempKern, lags, numSeg] = computeWienerKernel(...
                                 eval(behVars{k}), ...
@@ -238,17 +284,47 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
                             oneFlyKernel.(rKernName).(cellFieldNames{l}).allTrialKernels(j,:) = nan;
                             oneFlyKernel.(rKernName).(cellFieldNames{l}).allTrialVarExpl(j) = nan;
                         end
-                    end
-                    
+                    end    
                 end
+                
+                % loop through and compute behavioral autocorrelations for
+                %  this trial
+                for k = 1:length(behVars)
+                    [oneFlyAutoCorr.(behVars{k}).allTrialAutoCorr(j,:),...
+                        autoCorrLags] = normAutoCorrWNan(eval(behVars{k}),...
+                        autoCorrMaxLagSamp);
+                    % valid time, number of non NaN elements
+                    oneFlyAutoCorr.(behVars{k}).validTime(j) = ...
+                        sum(~isnan(eval(behVars{k})));
+                end
+                
+                % loop through and compute imaging autocorrelations for
+                %  this trial
+                imgFieldNames = {'left', 'right', 'sum', 'diff'};
+                for k = 1:length(imgFieldNames)
+                    % if trial has this imaging type, compute autocorr
+                    if (sum(strcmpi(dffFieldNames, imgFieldNames{k}))) 
+                        [oneFlyAutoCorr.(imgFieldNames{k}).allTrialAutoCorr(j,:),...
+                            autoCorrLags] = normAutoCorrWNan(...
+                            dffRS.(imgFieldNames{k}), autoCorrMaxLagSamp);
+                        oneFlyAutoCorr.(imgFieldNames{k}).validTime(j) = ...
+                            length(dffRS.(imgFieldNames{k}));
+                    else % trial doesn't have this img type, set values to nan
+                        oneFlyAutoCorr.(imgFieldNames{k}).allTrialAutoCorr(j,:) = nan;
+                        oneFlyAutoCorr.(imgFieldNames{k}).validTime(j) = nan;
+                    end
+                        
+                end
+                
 
                 
-            else
+            else % if pData file doesn't exist
                 fprintf('%s does not exist \n', pDataName);
+                
                 cellKernelNames = fieldnames(oneFlyKernel);
                 trialCellNames = fieldnames(oneCellCondStrct);
                 
-                % convert that trial to NaN values
+                % for kernels, convert that trial to NaN values
                 for k = 1:length(cellKernelNames)
                     for l = 1:length(trialCellNames)
                         oneFlyKernel.(cellKernelNames{k}).(trialCellNames{l}).validTime(j) = nan;
@@ -256,10 +332,14 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
                         oneFlyKernel.(cellKernelNames{k}).(trialCellNames{l}).allTrialVarExpl(j,:) = nan;
                     end
                 end
-            end
-            
-            
-            
+                
+                acNames = fieldnames(oneFlyAutoCorr);
+                % for autocorrelations, convert that trial to NaN values
+                for k = 1:length(acNames)
+                    oneFlyAutoCorr.(acNames{k}).validTime(j) = nan;
+                    oneFlyAutoCorr.(acNames{k}).allTrialAutoCorr(j,:) = nan;
+                end
+            end  
         end
         
         % get average kernel for fly
@@ -307,13 +387,44 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
                 % save into main struct
                 kernels.(ofkFN{m}).(occFN{n}).allKernels(i,:) = thisKernel;
                 kernels.(ofkFN{m}).(occFN{n}).flyID(i) = thisFlyID;
-                kernels.(ofkFN{m}).(occFN{n}).varExpl(i) = thisVarExpl;
+                kernels.(ofkFN{m}).(occFN{n}).varExpl(i) = thisVarExpl;    
+            end
+        end
+        
+        % get average autocorrelation for fly
+        ofacFN = fieldnames(oneFlyAutoCorr);
+        % loop through all fields, separate autocorrelations
+        for m = 1:length(ofacFN)
+            validTime = oneFlyAutoCorr.(ofacFN{m}).validTime(...
+                ~isnan(oneFlyAutoCorr.(ofacFN{m}).validTime));
+            
+            % check that this condition has any trials
+            if ~isempty(validTime)
+                weighting = validTime ./ (sum(validTime));
                 
+                % remove NaNs
+                oneFlyAutoCorr.(ofacFN{m}).allTrialAutoCorr(...
+                    isnan(...
+                    oneFlyAutoCorr.(ofacFN{m}).allTrialAutoCorr)) = []; 
                 
+                % weight autocorrelation
+                weightTrialAutoCorr = ...
+                    oneFlyAutoCorr.(ofacFN{m}).allTrialAutoCorr .* ...
+                    weighting;
+                % sum to get weighted average autocorrelation
+                thisAutoCorr = sum(weightTrialAutoCorr,1);
+                
+                % this fly's ID
+                thisFlyID = curFlyID;
+            else % if no trials
+                thisAutoCorr = NaN(1,autoCorrLen);
+                thisFlyID = nan;
             end
             
+            % save into main struct
+            autoCorr.(ofacFN{m}).allAutoCorr(i,:) = thisAutoCorr;
+            autoCorr.(ofacFN{m}).flyID(i) = thisFlyID;
         end
-            
         
     end
     
@@ -356,11 +467,40 @@ function [kernels, autoCorr, exptNames, kernelParams] = extractKernels(...
         end
     end    
     
+    % save autocorrelations into autoCorr struct
+    % loop through all fields of autoCorr
+    acFN = fieldnames(autoCorr);
+    for i = 1:length(acFN)
+        % remove NaNs from autocorrelations
+        delRows = [];
+        for k = 1:size(autoCorr.(acFN{i}).allAutoCorr, 1)
+            if (isnan(autoCorr.(acFN{i}).allAutoCorr(k,1)))
+                delRows = [delRows k];
+            end
+        end
+        autoCorr.(acFN{i}).allAutoCorr(delRows, :) = [];
+        
+        % remove NaNs from flyID
+        autoCorr.(acFN{i}).flyID(...
+            isnan(autoCorr.(acFN{i}).flyID)) = [];
+        
+        % compute mean
+        autoCorr.(acFN{i}).meanAutoCorr = mean(...
+            autoCorr.(acFN{i}).allAutoCorr, 1);
+        % get number of flies
+        autoCorr.(acFN{i}).numFlies = length(autoCorr.(acFN{i}).flyID);
+        % sem
+        autoCorr.(acFN{i}).sem = ...
+            std(autoCorr.(acFN{i}).allAutoCorr, [], 1) ./ ...
+            sqrt(autoCorr.(acFN{i}).numFlies);
+    end
+
+    
     % save kernelsParams.t
     kernelParams.t = lags;
     
-    % ADD AUTOCORRELATIONS
-    autoCorr = [];
+    % save autoCorrParams.lags
+    autoCorrParams.lags = autoCorrLags ./ autoCorrParams.sampRate;
     
     cd(curDir);
 end

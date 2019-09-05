@@ -5,10 +5,12 @@
 %
 % run extractKernels.m on all selected trials, save data, save figures
 %
-% UPDATED: 8/29/19
+% UPDATED: 
+%   8/29/19
+%   9/4/19 - autocorrelation computation now working
 
-datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190828';
-figPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/Figures/190828_kernels';
+datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190904';
+figPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/Figures/190904_kernels-autoCorr';
 
 vars = {'Exclude', 'CellType'};
 
@@ -19,8 +21,17 @@ kernelParams.fwdKernelBW = 5;
 kernelParams.revKernelBW = 5;
 kernelParams.sampRate = 100;
 
+autoCorrParams.maxLag = 3;
+
 allCellTypes = {'a01', 'a02', 'b05', 'b06', 'g13', 'g14', 'g15', 'g16', ...
     'g31', 'g34', 'p05', 'p09', 'p11', 'p12', 'p18', 'p32'};
+
+% load y axis scale and labels; variables: yScale, yLabels, yScaleAllDeg,
+% yLabelsAllDeg
+loadKernelYScaleYLabels();
+
+acYScale = {[-0.5 1], [-0.5 1], [-0.5 1], [-0.5 1], [-0.5 1], [-0.5 1],...
+    [-0.5 1], [-0.5 1], [-0.5 1]};
 
 %%
 % load metadata spreadsheet
@@ -36,26 +47,48 @@ for i = 1:length(allCellTypes)
     [~, selMetaDat] = returnSelectMetaDat(metaDat, vars, conds);
 
     % compute all kernels, this takes a while
-    [kernels, ~, exptNames, kernelParams] = extractKernels(...
-        selMetaDat, pDataPath(), kernelParams);
+    [kernels, autoCorr, exptNames, kernelParams, autoCorrParams] = ...
+        extractKernels(...
+        selMetaDat, pDataPath(), kernelParams, autoCorrParams);
     
     % save data
     save([datPath filesep allCellTypes{i} '.mat'], 'selMetaDat', ...
-        'kernels', 'exptNames', 'kernelParams', 'vars', 'conds', '-v7.3');
+        'kernels', 'autoCorr', 'exptNames', 'kernelParams', ...
+        'autoCorrParams', 'vars', 'conds', '-v7.3');
     
-    % generate figures
-    semFig = plotMeanKernels(kernels, kernelParams, [], ...
+    % generate kernel figures
+    
+    kernelSEMFig = plotMeanKernels(kernels, kernelParams, yScaleAllDeg, ...
+        allCellTypes{i}, yLabelsAllDeg, degPerMM, 1, 0, 0);
+    kernelIndivFig = plotMeanKernels(kernels, kernelParams, yScaleAllDeg, ...
+        allCellTypes{i}, yLabelsAllDeg, degPerMM, 0, 1, 0);
+    kernelMeanOnlyFig = plotMeanKernels(kernels, kernelParams, yScaleAllDeg, ...
+        allCellTypes{i}, yLabelsAllDeg, degPerMM, 0, 0, 0);
+    
+    % generate autocorrelation figures
+    autoCorrSEMFig = plotMeanAutoCorr(autoCorr, autoCorrParams, acYScale, ...
         allCellTypes{i}, 1, 0);
-    indivFig = plotMeanKernels(kernels, kernelParams, [], ...
+    autoCorrIndivFig = plotMeanAutoCorr(autoCorr, autoCorrParams, acYScale, ...
         allCellTypes{i}, 0, 1);
-    meanOnlyFig = plotMeanKernels(kernels, kernelParams, [], ...
+    autoCorrMeanFig = plotMeanAutoCorr(autoCorr, autoCorrParams, acYScale, ...
         allCellTypes{i}, 0, 0);
     
+    
+    
     % save figures
-    saveas(semFig, [figPath filesep allCellTypes{i} '_semFig'], 'fig');
-    saveas(indivFig, [figPath filesep allCellTypes{i} '_indivFig'], 'fig');
-    saveas(meanOnlyFig, [figPath filesep allCellTypes{i} '_meanOnlyFig'], ...
-        'fig');
+    saveas(kernelSEMFig, ...
+        [figPath filesep allCellTypes{i} '_kernels_semFig'], 'fig');
+    saveas(kernelIndivFig, ...
+        [figPath filesep allCellTypes{i} '_kernels_indivFig'], 'fig');
+    saveas(kernelMeanOnlyFig, ...
+        [figPath filesep allCellTypes{i} '_kernels_meanOnlyFig'], 'fig');
+    
+    saveas(autoCorrSEMFig, ...
+        [figPath filesep allCellTypes{i} '_autoCorr_semFig'], 'fig');
+    saveas(autoCorrIndivFig, ...
+        [figPath filesep allCellTypes{i} '_autoCorr_indivFig'], 'fig');
+    saveas(autoCorrMeanFig, ...
+        [figPath filesep allCellTypes{i} '_autoCorr_meanOnlyFig'], 'fig');
     
     % close all figures
     close all
