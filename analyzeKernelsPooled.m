@@ -9,7 +9,7 @@
 %   8/29/19
 %   9/4/19 - autocorrelation computation now working
 
-datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190904';
+datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190904_kernels-autoCorr';
 figPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/Figures/190904_kernels-autoCorr';
 
 vars = {'Exclude', 'CellType'};

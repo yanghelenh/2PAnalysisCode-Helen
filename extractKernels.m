@@ -3,7 +3,6 @@
 % Function that takes in metaDat struct of selected trials and returns 
 %  linear filters and autocorrelations, 1 per fly. Also returns mean and
 %  standard error of the mean.
-% NOTE: currently doesn't return autocorrelations
 %
 % INPUT:
 %   selMetaDat - metaDat struct with only trials that will be incorporated
@@ -198,7 +197,7 @@ function [kernels, autoCorr, exptNames, kernelParams, autoCorrParams] = ...
                 fictrac.totAngSpd(fictrac.dropInd) = nan;
                 
                 % convert dF/F data and FicTrac data to same timescale
-                newT = img.t:(1/kernelParams.sampRate):img.t(end);
+                newT = img.t(1):(1/kernelParams.sampRate):img.t(end);
                 % linear interpolation of fictrac data
                 FwdVel = interp1(fictrac.t, fictrac.fwdVel', newT);
                 SlideVel = interp1(fictrac.t, fictrac.slideVel', newT);
