@@ -222,8 +222,12 @@ function f = scatterMoveCondData(condPairData, xDataName, yDataName, ...
             end
             
             % add scale, labels for each plot
-            xlim(xScale);
-            ylim(yScale);
+            if (~isempty(xScale))
+                xlim(xScale);
+            end
+            if (~isempty(yScale))
+                ylim(yScale);
+            end
 
             xTxt = sprintf('%s (%s)', xDataName, xUnits);
             xlabel(xTxt);
@@ -240,8 +244,12 @@ function f = scatterMoveCondData(condPairData, xDataName, yDataName, ...
     
     % scale, add labels for when there's one plot
     if (samePlot)
-        xlim(xScale);
-        ylim(yScale);
+        if (~isempty(xScale))
+            xlim(xScale);
+        end
+        if (~isempty(yScale))
+            ylim(yScale);
+        end
         
         xTxt = sprintf('%s (%s)', xDataName, xUnits);
         xlabel(xTxt);
