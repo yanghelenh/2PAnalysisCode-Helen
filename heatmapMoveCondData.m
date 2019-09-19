@@ -286,7 +286,7 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
     maxAmp = max(abs(zScale - colorbarWhite));
     % use maxAmp to determine scale factor between zScale and colorScale:
     % maxAmp corresponds to 1/2 of colorScale; c per z
-    zcScFctr = ((colorRes - 1)/2) / maxAmp;
+    zcScFctr = ((colorRes - minColorInd)/2) / maxAmp;
     
     % generate heat maps in colorbar indicies for plotting
     if ~(samePlot) % separate plots for each fly
@@ -327,12 +327,10 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
     % scale factors for colorbar
     % exclude 1 from showing on colorbar
     colorbarLims = [minColorInd colorRes]; 
-%     % where ticks are, in indicies to colorbar
-%     tickLocs = minColorInd:((colorRes-minColorInd)/(numTicks-1)):colorRes;
-    % tick labels, in z axis units
-%     tickLabels = ((tickLocs - (colorRes/2 + 1)) / zcScFctr) + colorbarWhite;
     
+    % where ticks are, on zScale; will become tick labels
     tickLabels = zScale(1):((zScale(2)-zScale(1))/(numTicks - 1)):zScale(2);
+    % where ticks are, in indicies
     tickLocs = zcScFctr .* (tickLabels - colorbarWhite) + ...
             (colorRes/2 + 1);
     
@@ -342,8 +340,11 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         colormap(colorScale);
         
         imgHandle = imagesc(xBinMids, yBinMids, heatmapPlotMat(:,:,i));
+        % invert axes so smaller values on y axis toward bottom
         ax = gca;
         ax.YDir = 'normal';
+        % this property needs to be set here and not as option in imagesc
+        %  initial call (doesn't work there)
         imgHandle.CDataMapping = 'direct';
         
         % axis labels
@@ -354,8 +355,6 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         colorbarHandle = colorbar('LimitsMode', 'manual', 'Limits',...
             colorbarLims, 'TicksMode', 'manual', 'Ticks', tickLocs, ...
             'TickLabelsMode', 'manual', 'TickLabels', tickLabels);
-%         colorbarHandle = colorbar('LimitsMode', 'manual', 'Limits',...
-%             colorbarLims);
         colorbarHandle.Label.String = sprintf('%s (%s)', zDataName, zUnits);
         
         % plot title
