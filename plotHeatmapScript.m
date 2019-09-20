@@ -1,11 +1,11 @@
 close all
 
-xDataName = 'yawAngVel';
-yDataName = 'fwdVel';
-zDataName = 'sum';
-xScale = [-500 500 20];
-yScale = [-5 25 20];
-zScale = [-1 1];
+xDataName = 'fwdVel';
+yDataName = 'sum';
+zDataName = 'counts';
+xScale = [-5 25 20];
+yScale = [-1 1 20];
+zScale = [0 1000];
 minNumVals = 20;
 offset = 0;
 samePlot = 0;

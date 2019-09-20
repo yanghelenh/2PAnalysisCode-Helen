@@ -20,19 +20,21 @@
 %   yDataName - string specifying name of data to put on y-axis;
 %       independent variable 2
 %   zDataName - string specifying name of data to represent as color on
-%       heat map; dependent variable
+%       heat map; dependent variable; if this is empty, heat map is instead
+%       count of number of values in each bin (relates x and y data)
 %   xScale - 3 element vector of [xmin, xmax, xNumBins]
 %   yScale - 3 element vector of [ymin, ymax, yNumBins]
 %   zScale - z axis limits, as 2 element vector
 %   minNumVals - minimum number of values that need to be in a bin for it
-%       to be plotted in heat map
+%       to be plotted in heat map, per fly
 %   offset - offset between zData and x/y Data, positive values are zData
 %       before x/yData, negative values are zData before x/yData; in units
 %       of samples
 %   samePlot - binary for whether to put all flies on same plot (1) or to
 %       generate a separate figure for each fly (0)
 %   plotNotMove - binary for whether to plot not moving data points; (1)
-%       for yes, (0) for no; if yes, plot as x (moving points are circles)
+%       for yes, (0) for no; nothing distinguishes moving from not moving
+%       points in heat map if (1)
 %   degPerMM - if not empty, will convert any fictrac variables using mm to
 %       deg, using this conversion factor
 %   ttl - plot title
@@ -114,7 +116,7 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         % get y data, assumes yDataName is field of img or fictrac
         if (any(strcmpi(imgVars, yDataName)))
             yDat = condPairData(i).img.(yDataName);
-            yDat(condPariData(i).moveLog) = nan;
+            yDat(condPairData(i).moveLog) = nan;
             % not moving data
             yDatNM = condPairData(i).img.(yDataName);
             yDatNM(condPairData(i).notMoveLog) = nan;
@@ -135,6 +137,7 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
                 yUnits = 'mm/s';
             end
         end
+        zIsCount = 0; % boolean for whether z-data is count
         % get z data, assumes zDataName is field of img or fictrac
         if (any(strcmpi(imgVars, zDataName)))
             zDat = condPairData(i).img.(zDataName);
@@ -143,7 +146,7 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
             zDatNM = condPairData(i).img.(zDataName);
             zDatNM(condPairData(i).notMoveLog) = nan;
             zUnits = 'dF/F';
-        else
+        elseif (any(strcmpi(behVars, zDataName)))
             zDat = condPairData(i).fictrac.move.(zDataName);
             zDatNM = condPairData(i).fictrac.notMove.(zDataName);
             % if the z data is in mm and the user desires a conversion
@@ -158,6 +161,12 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
             else
                 zUnits = 'mm/s';
             end
+        elseif (strcmpi('counts', zDataName))
+            zDat = ones(size(condPairData(i).moveLog));
+            zDatNM = zDat;
+            zDat(condPairData(i).moveLog) = nan;
+            zDatNM(condPairData(i).notMoveLog) = nan;
+            zIsCount = 1;
         end
         
         % introduce offset to data
@@ -268,71 +277,105 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         end
     end
     
-    % get mean value for each heatmap bin
-    % NaN for every bin that has fewer than min number of data points
-    %  allowed
-    countsMat(countsMat < minNumVals) = nan;
-    heatmapMat = heatmapMat ./ countsMat;
-    
-    % zScale
-    colorScale = redblue(colorRes);
-    % shift so only 1 middle value is white
-    colorScale(2:(colorRes/2 + 1), :) = colorScale(1:(colorRes/2),:);
-    % index 1 corresponds to color for NaN
-    colorScale(1,:) = nanVal;
-    minColorInd = 2; % since ind 1 is NaN color, min ind for a color is 2
-    
-    % max difference from value set to white
-    maxAmp = max(abs(zScale - colorbarWhite));
-    % use maxAmp to determine scale factor between zScale and colorScale:
-    % maxAmp corresponds to 1/2 of colorScale; c per z
-    zcScFctr = ((colorRes - minColorInd)/2) / maxAmp;
-    
-    % generate heat maps in colorbar indicies for plotting
-    if ~(samePlot) % separate plots for each fly
-    
-        % conversion b/w z and color
-        heatmapPlotMat = zcScFctr .* (heatmapMat - colorbarWhite) + ...
-            (colorRes/2 + 1);
 
-    else % one heat map averaged across flies to plot
-        heatmapMean = NaN(size(heatmapMat,1), size(heatmapMat,2));
-        % loop over all bins
-        for i = 1:size(heatmapMean,1)
-            for j = 1:size(heatmapMean,2)
-                % compute mean across flies, exluding flies without enough
-                %  data for that bin
-                binVals = heatmapMat(i, j, :);
-                tempMean = mean(binVals(~isnan(binVals)));
-                if ~isnan(tempMean) % mean of [] is NaN
-                    heatmapMean(i, j) = tempMean;
+    % only when data to be plotted is not counts; get heat map values to
+    %  plot, scaling
+    if ~zIsCount
+        % get mean value for each heatmap bin
+        % NaN for every bin that has fewer than min number of data points
+        %  allowed
+        countsMat(countsMat < minNumVals) = nan;
+        heatmapMat = heatmapMat ./ countsMat;
+    
+        % zScale
+        colorScale = redblue(colorRes);
+        % shift so only 1 middle value is white
+        colorScale(2:(colorRes/2 + 1), :) = colorScale(1:(colorRes/2),:);
+        % index 1 corresponds to color for NaN
+        colorScale(1,:) = nanVal;
+        minColorInd = 2; % since ind 1 is NaN color, min ind for a color is 2
+
+        % max difference from value set to white
+        maxAmp = max(abs(zScale - colorbarWhite));
+        % use maxAmp to determine scale factor between zScale and colorScale:
+        % maxAmp corresponds to 1/2 of colorScale; c per z
+        zcScFctr = ((colorRes - minColorInd)/2) / maxAmp;
+
+        % generate heat maps in colorbar indicies for plotting
+        if ~(samePlot) % separate plots for each fly
+
+            % conversion b/w z and color
+            heatmapPlotMat = zcScFctr .* (heatmapMat - colorbarWhite) + ...
+                (colorRes/2 + 1);
+
+        else % one heat map averaged across flies to plot
+            heatmapMean = NaN(size(heatmapMat,1), size(heatmapMat,2));
+            % loop over all bins
+            for i = 1:size(heatmapMean,1)
+                for j = 1:size(heatmapMean,2)
+                    % compute mean across flies, exluding flies without
+                    %  enough data for that bin
+                    binVals = heatmapMat(i, j, :);
+                    tempMean = mean(binVals(~isnan(binVals)));
+                    if ~isnan(tempMean) % mean of [] is NaN
+                        heatmapMean(i, j) = tempMean;
+                    end
                 end
             end
+
+            % convert to colorbar indicies for plotting
+            heatmapPlotMat = zcScFctr .* (heatmapMean - colorbarWhite) + ...
+                (colorRes/2 + 1);
+        end
+
+        % values that exceed zScale boundaries in either direction are set
+        %  to min/max color values
+        heatmapPlotMat(heatmapPlotMat < minColorInd) = minColorInd;
+        heatmapPlotMat(heatmapPlotMat > colorRes) = colorRes;
+
+        % NaNs in heatmap set to 1, to plot as color for bins without
+        %  enough data
+        heatmapPlotMat(isnan(heatmapPlotMat)) = 1;
+
+        % scale factors for colorbar
+        % exclude 1 from showing on colorbar
+        colorbarLims = [minColorInd colorRes]; 
+
+        % where ticks are, on zScale; will become tick labels
+        tickLabels = zScale(1):((zScale(2)-zScale(1))/(numTicks - 1)):zScale(2);
+        % where ticks are, in indicies
+        tickLocs = zcScFctr .* (tickLabels - colorbarWhite) + ...
+            (colorRes/2 + 1);
+    
+    % plot counts; set up color scale
+    else
+        % zScale
+        colorScale = parula(colorRes);
+        minColorInd = 1; % shift corresponding to 1 vs 0 indexing
+        
+        zcScFctr = (colorRes - minColorInd) / (zScale(2)-zScale(1));
+        
+        % separate counts plot for each fly
+        if ~(samePlot)
+            % conversion b/w z and color
+            heatmapPlotMat = zcScFctr .* (countsMat - zScale(1)) + ...
+                minColorInd;
+        else % one heat map, of summed counts across all flies
+            heatmapSum = sum(countsMat,3);
+
+            % convert to colorbar indicies for plotting
+            heatmapPlotMat = zcScFctr .* (heatmapSum - zScale(1)) + ...
+                minColorInd;
         end
         
-        % convert to colorbar indicies for plotting
-        heatmapPlotMat = zcScFctr .* (heatmapMean - colorbarWhite) + ...
-            (colorRes/2 + 1);
-    end
-    
-    % values that exceed zScale boundaries in either direction are set
-    %  to min/max color values
-    heatmapPlotMat(heatmapPlotMat < minColorInd) = minColorInd;
-    heatmapPlotMat(heatmapPlotMat > colorRes) = colorRes;
+        % scale factors for colorbar
+        colorbarLims = [minColorInd colorRes]; 
 
-    % NaNs in heatmap set to 1, to plot as color for bins without
-    %  enough data
-    heatmapPlotMat(isnan(heatmapPlotMat)) = 1;
-    
-    % scale factors for colorbar
-    % exclude 1 from showing on colorbar
-    colorbarLims = [minColorInd colorRes]; 
-    
-    % where ticks are, on zScale; will become tick labels
-    tickLabels = zScale(1):((zScale(2)-zScale(1))/(numTicks - 1)):zScale(2);
-    % where ticks are, in indicies
-    tickLocs = zcScFctr .* (tickLabels - colorbarWhite) + ...
-            (colorRes/2 + 1);
+        % where ticks are, on zScale; will become tick labels
+        tickLabels = zScale(1):((zScale(2)-zScale(1))/(numTicks - 1)):zScale(2);
+        % where ticks are, in indicies
+        tickLocs = zcScFctr .* (tickLabels - zScale(1)) + minColorInd;
+    end
     
     % plot heatmap(s)
     for i = 1:size(heatmapPlotMat,3)
@@ -351,19 +394,34 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         xlabel(sprintf('%s (%s)', xDataName, xUnits));
         ylabel(sprintf('%s (%s)', yDataName, yUnits));
         
-        
+        % colorbar, scaled and labeled appropriately for z-axis data
         colorbarHandle = colorbar('LimitsMode', 'manual', 'Limits',...
             colorbarLims, 'TicksMode', 'manual', 'Ticks', tickLocs, ...
             'TickLabelsMode', 'manual', 'TickLabels', tickLabels);
-        colorbarHandle.Label.String = sprintf('%s (%s)', zDataName, zUnits);
+        if ~zIsCount
+            colorbarHandle.Label.String = sprintf('%s (%s)', ...
+                zDataName, zUnits);
+        else
+            colorbarHandle.Label.String = zDataName;
+        end
         
         % plot title
-        if (samePlot)
-            ttlStr = sprintf('%s %s vs. %s and %s (n = %d)', ttl, ...
-                zDataName, xDataName, yDataName, numFlies);
+        if ~zIsCount
+            if (samePlot)
+                ttlStr = sprintf('%s %s vs. %s and %s (n = %d)', ttl, ...
+                    zDataName, xDataName, yDataName, numFlies);
+            else
+                ttlStr = sprintf('%s %s vs. %s and %s (fly ID %d)', ttl, ...
+                    zDataName, xDataName, yDataName, condPairData(i).flyID);
+            end
         else
-            ttlStr = sprintf('%s %s vs. %s and %s (fly ID %d)', ttl, ...
-                zDataName, xDataName, yDataName, condPairData(i).flyID);
+            if (samePlot)
+                ttlStr = sprintf('%s %s %s vs. %s (n = %d)', ttl, ...
+                    zDataName, yDataName, xDataName, numFlies);
+            else
+                ttlStr = sprintf('%s %s %s vs. %s (fly ID %d)', ttl, ...
+                    zDataName, yDataName, xDataName, condPairData(i).flyID);
+            end
         end
         
         title(ttlStr); 
