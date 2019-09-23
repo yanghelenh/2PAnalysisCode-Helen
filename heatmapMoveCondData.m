@@ -20,8 +20,8 @@
 %   yDataName - string specifying name of data to put on y-axis;
 %       independent variable 2
 %   zDataName - string specifying name of data to represent as color on
-%       heat map; dependent variable; if this is empty, heat map is instead
-%       count of number of values in each bin (relates x and y data)
+%       heat map; dependent variable; if this is 'counts', heat map is
+%       instead count of number of values in each bin (relates x and y data)
 %   xScale - 3 element vector of [xmin, xmax, xNumBins]
 %   yScale - 3 element vector of [ymin, ymax, yNumBins]
 %   zScale - z axis limits, as 2 element vector
@@ -41,6 +41,9 @@
 %
 % OUTPUTS:
 %   f - handle to figure(s)
+%   heatmapMat - matrix of heat map values (not color indicies) that went
+%       into plots
+%   countsMat - number of values per bin
 %
 % CREATED: 9/13/19 - HHY
 %
