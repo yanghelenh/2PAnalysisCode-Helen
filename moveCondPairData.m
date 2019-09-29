@@ -29,7 +29,8 @@
 %       img - struct with fields of dF/F for left, right, sum, diff (only
 %           those that exist for that fly
 %       fictrac - struct with fields of behavioral variables: fwdVel,
-%           yawVel, slideVel, yawSpd, totSpd
+%           yawAngVel, slideVel, yawAngSpd, totAngSpd, fwdAcc, slideAcc,
+%           yawAngAcc, totAngAccMag
 %       flyID - flyID for which fly contributed that data
 %   condPairParams - struct of input parameters
 %       sampRate
@@ -41,13 +42,15 @@
 % 
 % UPDATED:
 %   9/12/19 - HHY
+%   9/27/19 - HHY - include acceleration variables
 %
 
 function [condPairData, condPairParams, exptNames] = moveCondPairData(...
     selMetaDat, pdPath, sampRate, moveStartWin, moveEndWin)
 
     % fictrac behavioral variables to return
-    behVars = {'fwdVel', 'slideVel', 'yawAngVel', 'yawAngSpd', 'totAngSpd'};
+    behVars = {'fwdVel', 'slideVel', 'yawAngVel', 'yawAngSpd', ...
+        'totAngSpd', 'fwdAcc', 'slideAcc', 'yawAngAcc', 'totAngAccMag'};
 
     curDir = pwd;
     cd(pdPath);

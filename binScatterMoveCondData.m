@@ -38,6 +38,8 @@
 %
 % UPDATED:
 %   9/23/19
+%   9/26/19 - added tick marks to x-axis
+%   9/27/19 - allow acceleration as fictrac variable, deal with units
 %
 
 function f = binScatterMoveCondData(condPairData, xDataName, yDataName, ...
@@ -46,7 +48,9 @@ function f = binScatterMoveCondData(condPairData, xDataName, yDataName, ...
 
     % fictrac behavioral variables
     behVars = {'fwdVel', 'slideVel', 'yawAngVel', 'yawAngSpd', ...
-        'totAngSpd'};
+        'totAngSpd', 'fwdAcc', 'slideAcc', 'yawAngAcc', 'totAngAccMag'};
+    behVarsUnits = {'mm/s', 'mm/s', 'deg/s', 'deg/s', 'deg/s', ...
+        'mm/s^2', 'mm/s^2', 'deg/s^2', 'deg/s^2'};
     % imaging variables
     imgVars = {'left', 'right', 'sum', 'diff'};
     
@@ -90,17 +94,17 @@ function f = binScatterMoveCondData(condPairData, xDataName, yDataName, ...
         else
             xDat = condPairData(i).fictrac.move.(xDataName);
             xDatNM = condPairData(i).fictrac.notMove.(xDataName);
+            % find which behavioral variable it is
+            xBehVarInd = find(strcmpi(behVars, xDataName));
             % if the x data is in mm and the user desires a conversion
             %  to degrees
             if ~isempty(degPerMM) && ...
-                    any(strcmpi(behVars(1:2), xDataName))
+                    strfind(behVarsUnits{xBehVarInd}, 'mm')
                 xDat = xDat .* degPerMM;
                 xDatNM = xDatNM .* degPerMM;
                 xUnits = 'deg/s';
-            elseif any(strcmpi(behVars(3:end), xDataName))
-                xUnits = 'deg/s';
             else
-                xUnits = 'mm/s';
+                xUnits = behVarsUnits{xBehVarInd};
             end
         end
         % get y data, assumes yDataName is field of img or fictrac
@@ -114,17 +118,17 @@ function f = binScatterMoveCondData(condPairData, xDataName, yDataName, ...
         else
             yDat = condPairData(i).fictrac.move.(yDataName);
             yDatNM = condPairData(i).fictrac.notMove.(yDataName);
+            % find which behavioral variable it is
+            yBehVarInd = find(strcmpi(behVars, yDataName));
             % if the y data is in mm and the user desires a conversion
             %  to degrees
             if ~isempty(degPerMM) && ...
-                    any(strcmpi(behVars(1:2), yDataName))
+                    strfind(behVarsUnits{yBehVarInd}, 'mm')
                 yDat = yDat .* degPerMM;
                 yDatNM = yDatNM .* degPerMM;
                 yUnits = 'deg/s';
-            elseif any(strcmpi(behVars(3:end), yDataName))
-                yUnits = 'deg/s';
             else
-                yUnits = 'mm/s';
+                yUnits = behVarsUnits{yBehVarInd};
             end
         end
         
@@ -247,14 +251,16 @@ function f = binScatterMoveCondData(condPairData, xDataName, yDataName, ...
         yVals(isnan(yVals)) = [];
         xVals(isnan(xVals)) = [];
         
-        allYVals = [allYVals; yVals];
-        allXVals = [allXVals; xVals];
+        % last entry is to make sure all xBins appear and so are plotted in
+        %  correct x-axis location
+        allYVals = [allYVals; yVals; NaN(size(xBinStarts'))];
+        allXVals = [allXVals; xVals; xBinStarts'];
         
         if (plotNotMove)
             yValsNM(isnan(yValsNM)) = [];
             xValsNM(isnan(xValsNM)) = [];
-            allYValsNM = [allYValsNM; yValsNM];
-            allXValsNM = [allXValsNM; xValsNM];
+            allYValsNM = [allYValsNM; yValsNM; NaN(size(xBinStarts'))];
+            allXValsNM = [allXValsNM; xValsNM; xBinStarts'];
         end
         
         % plot, for separate plot per fly
@@ -269,6 +275,8 @@ function f = binScatterMoveCondData(condPairData, xDataName, yDataName, ...
             boxplot(allYVals, allXVals, 'PlotStyle', 'compact', ...
                 'Colors', 'b');
             
+            set(gca, 'xtick', 1:2:length(xBinStarts), ...
+                'xticklabels', xBinStarts(1:2:(length(xBinStarts))));
             if ~isempty(yScale)
                 ylim(yScale);
             end
@@ -302,11 +310,14 @@ function f = binScatterMoveCondData(condPairData, xDataName, yDataName, ...
 
         if ((plotNotMove) && ~isempty(allYValsNM) && ~isempty(allXVals))
             boxplot(allYValsNM, allXValsNM, 'PlotStyle', 'compact', ...
-                'Colors', 'r');
+                'Colors', 'r', 'Whisker', 0, 'Symbol','');
         end
         hold on;
         boxplot(allYVals, allXVals, 'PlotStyle', 'compact', ...
-            'Colors', 'b');
+            'Colors', 'b', 'Whisker', 0, 'Symbol','');
+        
+        set(gca, 'xtick', 1:2:length(xBinStarts), ...
+            'xticklabels', xBinStarts(1:2:(length(xBinStarts))));
         
         if ~isempty(yScale)
             ylim(yScale);

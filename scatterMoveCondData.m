@@ -35,6 +35,7 @@
 % CREATED: 9/12/19 - HHY
 %
 % UPDATED: 9/13/19 - HHY
+%   9/27/19 - HHY - handles acceleration, deals with units
 %
 
 function f = scatterMoveCondData(condPairData, xDataName, yDataName, ...
@@ -46,7 +47,10 @@ function f = scatterMoveCondData(condPairData, xDataName, yDataName, ...
     markerSize = 20;
 
     % fictrac behavioral variables
-    behVars = {'fwdVel', 'slideVel', 'yawAngVel', 'yawAngSpd', 'totAngSpd'};
+    behVars = {'fwdVel', 'slideVel', 'yawAngVel', 'yawAngSpd', ...
+        'totAngSpd', 'fwdAcc', 'slideAcc', 'yawAngAcc', 'totAngAccMag'};
+    behVarsUnits = {'mm/s', 'mm/s', 'deg/s', 'deg/s', 'deg/s', ...
+        'mm/s^2', 'mm/s^2', 'deg/s^2', 'deg/s^2'};
     % imaging variables
     imgVars = {'left', 'right', 'sum', 'diff'};
     
@@ -77,16 +81,16 @@ function f = scatterMoveCondData(condPairData, xDataName, yDataName, ...
             xUnits = 'dF/F';
         else
             xDat = condPairData(i).fictrac.move.(xDataName);
+            % find which behavioral variable it is
+            xBehVarInd = find(strcmpi(behVars, xDataName));
             % if the x data is in mm and the user desires a conversion
             %  to degrees
             if ~isempty(degPerMM) && ...
-                    any(strcmpi(behVars(1:2), xDataName))
+                    strfind(behVarsUnits{xBehVarInd}, 'mm')
                 xDat = xDat .* degPerMM;
                 xUnits = 'deg/s';
-            elseif any(strcmpi(behVars(3:end), xDataName))
-                xUnits = 'deg/s';
             else
-                xUnits = 'mm/s';
+                xUnits = behVarsUnits{xBehVarInd};
             end
         end
         % get y data, assumes yDataName is field of img or fictrac
@@ -97,16 +101,16 @@ function f = scatterMoveCondData(condPairData, xDataName, yDataName, ...
         else
             yDat = condPairData(i).fictrac.move.(yDataName);
             isImg = isImg * 0;
+            % find which behavioral variable it is
+            yBehVarInd = find(strcmpi(behVars, yDataName));
             % if the y data is in mm and the user desires a conversion
             %  to degrees
             if ~isempty(degPerMM) && ...
-                    any(strcmpi(behVars(1:2), yDataName))
+                    strfind(behVarsUnits{yBehVarInd}, 'mm')
                 yDat = yDat .* degPerMM;
                 yUnits = 'deg/s';
-            elseif any(strcmpi(behVars(3:end), yDataName))
-                yUnits = 'deg/s';
             else
-                yUnits = 'mm/s';
+                yUnits = behVarsUnits{yBehVarInd};
             end
         end
 

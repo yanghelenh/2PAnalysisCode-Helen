@@ -8,9 +8,10 @@
 %
 % UPDATED: 
 %   9/13/19
-%
+%   9/27/19 - run again after acceleration added to pData, save in
+%       190927_moveCond folder
 
-datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190912_moveCond';
+datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190927_moveCond';
 
 vars = {'Exclude', 'CellType'};
 

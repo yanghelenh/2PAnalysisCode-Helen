@@ -48,6 +48,8 @@
 % CREATED: 9/13/19 - HHY
 %
 % UPDATED: 9/19/19 - HHY
+%   9/27/19 - HHY - allow acceleration as a fictrac variable, change how
+%       units handled to deal appropriately
 %
 
 function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
@@ -61,7 +63,9 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
     
     % fictrac behavioral variables
     behVars = {'fwdVel', 'slideVel', 'yawAngVel', 'yawAngSpd', ...
-        'totAngSpd'};
+        'totAngSpd', 'fwdAcc', 'slideAcc', 'yawAngAcc', 'totAngAccMag'};
+    behVarsUnits = {'mm/s', 'mm/s', 'deg/s', 'deg/s', 'deg/s', ...
+        'mm/s^2', 'mm/s^2', 'deg/s^2', 'deg/s^2'};
     % imaging variables
     imgVars = {'left', 'right', 'sum', 'diff'};
     
@@ -103,17 +107,17 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         else
             xDat = condPairData(i).fictrac.move.(xDataName);
             xDatNM = condPairData(i).fictrac.notMove.(xDataName);
+            % find which behavioral variable it is
+            xBehVarInd = find(strcmpi(behVars, xDataName));
             % if the x data is in mm and the user desires a conversion
             %  to degrees
             if ~isempty(degPerMM) && ...
-                    any(strcmpi(behVars(1:2), xDataName))
+                    strfind(behVarsUnits{xBehVarInd}, 'mm')
                 xDat = xDat .* degPerMM;
                 xDatNM = xDatNM .* degPerMM;
                 xUnits = 'deg/s';
-            elseif any(strcmpi(behVars(3:end), xDataName))
-                xUnits = 'deg/s';
             else
-                xUnits = 'mm/s';
+                xUnits = behVarsUnits{xBehVarInd};
             end
         end
         % get y data, assumes yDataName is field of img or fictrac
@@ -127,17 +131,17 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         else
             yDat = condPairData(i).fictrac.move.(yDataName);
             yDatNM = condPairData(i).fictrac.notMove.(yDataName);
+            % find which behavioral variable it is
+            yBehVarInd = find(strcmpi(behVars, yDataName));
             % if the y data is in mm and the user desires a conversion
             %  to degrees
             if ~isempty(degPerMM) && ...
-                    any(strcmpi(behVars(1:2), yDataName))
+                    strfind(behVarsUnits{yBehVarInd}, 'mm')
                 yDat = yDat .* degPerMM;
                 yDatNM = yDatNM .* degPerMM;
                 yUnits = 'deg/s';
-            elseif any(strcmpi(behVars(3:end), yDataName))
-                yUnits = 'deg/s';
             else
-                yUnits = 'mm/s';
+                yUnits = behVarsUnits{yBehVarInd};
             end
         end
         zIsCount = 0; % boolean for whether z-data is count
@@ -152,17 +156,16 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         elseif (any(strcmpi(behVars, zDataName)))
             zDat = condPairData(i).fictrac.move.(zDataName);
             zDatNM = condPairData(i).fictrac.notMove.(zDataName);
+            zBehVarInd = find(strcmpi(behVars, zDataName));
             % if the z data is in mm and the user desires a conversion
             %  to degrees
             if ~isempty(degPerMM) && ...
-                    any(strcmpi(behVars(1:2), zDataName))
+                    strfind(behVarsUnits{zBehVarInd}, 'mm')
                 zDat = zDat .* degPerMM;
                 zDatNM = zDatNM .* degPerMM;
                 zUnits = 'deg/s';
-            elseif any(strcmpi(behVars(3:end), zDataName))
-                zUnits = 'deg/s';
             else
-                zUnits = 'mm/s';
+                zUnits = behVarsUnits{zBehVarInd};
             end
         elseif (strcmpi('counts', zDataName))
             zDat = ones(size(condPairData(i).moveLog));
@@ -392,6 +395,7 @@ function [f, heatmapMat, countsMat] = heatmapMoveCondData(condPairData,...
         % this property needs to be set here and not as option in imagesc
         %  initial call (doesn't work there)
         imgHandle.CDataMapping = 'direct';
+        axis square;
         
         % axis labels
         xlabel(sprintf('%s (%s)', xDataName, xUnits));

@@ -19,6 +19,7 @@
 %
 % CREATED: 5/23/19
 % UPDATED: 5/23/19
+%   9/26/19 - deal with what happens if no valid data
 %
 
 function [varExpl, fitObj] = computeVarianceExplained(actResp, predResp,...
@@ -43,7 +44,13 @@ function [varExpl, fitObj] = computeVarianceExplained(actResp, predResp,...
     actResp(nanInd) = [];
     predResp(nanInd) = [];
     
-    [fitObj, gof] = fit(predResp, actResp, fittype(modelType));
+    if (~isempty(actResp) && ~isempty(predResp))
     
-    varExpl = gof.rsquare;
+        [fitObj, gof] = fit(predResp, actResp, fittype(modelType));
+
+        varExpl = gof.rsquare;
+    else
+        fitObj = [];
+        varExpl = nan;
+    end
 end
