@@ -9,9 +9,9 @@
 % OUTPUT:
 %   metaDat - struct of metadata
 % 
-% CREATED: 8/24/19 - HHY
+% CREATED: 9/27/20 - HHY
 %
-% UPDATED: 8/24/19 - HHY
+% UPDATED: 9/27/20 - HHY
 %
 
 function metaDat = loadMetadataSpreadsheet()
@@ -27,7 +27,7 @@ function metaDat = loadMetadataSpreadsheet()
     
     % change options to import relevant metadata (exclude freeform comments
     %  fields) in correct format
-    opts.SelectedVariableNames = opts.VariableNames([1:5, 7:12, 14]);
+    opts.SelectedVariableNames = opts.VariableNames([1:11, 13:20]);
     
     opts = setvartype(opts,'Age',{'char'}); 
     opts = setvaropts(opts,'Exclude','FillValue',0);
@@ -48,7 +48,6 @@ function metaDat = loadMetadataSpreadsheet()
     
     % convert FlyID, Temperature, Exclude to normal arrays
     metaDat.FlyID = cell2mat(metaDat.FlyID);
-    metaDat.Temperature = cell2mat(metaDat.Temperature);
     metaDat.Exclude = cell2mat(metaDat.Exclude);
 
 end

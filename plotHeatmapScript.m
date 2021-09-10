@@ -6,14 +6,14 @@ clearvars
 dataPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190927_moveCond';
 figPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/Figures/190924_scatter-heatmap';
 
-cellType = 'a01';
+cellType = 'g34';
 
 xDataName = 'yawAngVel';
 yDataName = 'fwdVel';
-zDataName = 'sum';
+zDataName = 'diff';
 xScale = [-450 450 30];
 yScale = [-5 25 30];
-zScale = [-0.5 0.5];
+zScale = [-0.25 0.25];
 minNumVals = 20;
 offset = 0;
 samePlot = 0;
