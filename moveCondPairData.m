@@ -43,6 +43,7 @@
 % UPDATED:
 %   9/12/19 - HHY
 %   9/27/19 - HHY - include acceleration variables
+%   12/13/22 - HHY - add correlation b/w left and right dF/F
 %
 
 function [condPairData, condPairParams, exptNames] = moveCondPairData(...
@@ -70,6 +71,7 @@ function [condPairData, condPairParams, exptNames] = moveCondPairData(...
     flyStrct.img.right = [];
     flyStrct.img.sum = [];
     flyStrct.img.diff = [];
+    flyStrct.img.corr = [];
     
     for k = 1:length(behVars)
         flyStrct.fictrac.move.(behVars{k}) = [];
@@ -212,7 +214,7 @@ function [condPairData, condPairParams, exptNames] = moveCondPairData(...
                 imgFN = fieldnames(condPairData(i).img);
                 for k = 1:length(imgFN)
                     % if this trial has this ROI type (left, right, sum,
-                    %  diff), as not all of them do
+                    %  diff, corr), as not all of them do
                     if (isfield(dffRS, imgFN{k}))
                         condPairData(i).img.(imgFN{k}) = horzcat(...
                             condPairData(i).img.(imgFN{k}), ...

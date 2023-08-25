@@ -12,8 +12,8 @@
 % INPUT:
 %   condPairData - struct array of movement conditioned data, 1 element per
 %     fly, with fields:
-%       img - struct with fields of dF/F for left, right, sum, diff (only
-%           those that exist for that fly
+%       img - struct with fields of dF/F for left, right, sum, diff, corr 
+%           (only those that exist for that fly
 %       fictrac - struct with fields of behavioral variables: fwdVel,
 %           yawVel, slideVel, yawSpd, totSpd
 %       flyID - flyID for which fly contributed that data
@@ -39,7 +39,7 @@
 %   kernels - struct with all the kernel data
 %       fFwdVel, fYawVel, fYawSpd, fTotSpd, fSlideVel, rFwdVel, rYawVel,
 %           rYawSpd, rTotSpd, rSlideVel
-%       for each of the above fields: fields left, right, sum, diff
+%       for each of the above fields: fields left, right, sum, diff, corr
 %       for each of the above fields: allKernels (fly x kernelLen matrix),
 %           flyID (fly x 1 vector, corresponding dimensions to kernel),
 %           meanKernel (1 x kernelLen vector), sem (1 x kernelLen vector),
@@ -59,7 +59,9 @@
 %
 % CREATED: 9/26/19 - HHY
 %
-% UPDATED: 9/26/19 - HHY
+% UPDATED: 
+%   9/26/19 - HHY
+%   12/13/22 - HHY - add correlation b/w left and right as a field
 %
 function [kernels, kernelParams, autoCorrParams, autoCorr] = ...
     extractMoveCondKernels(condPairData, kernelParams, autoCorrParams)
@@ -92,6 +94,7 @@ function [kernels, kernelParams, autoCorrParams, autoCorr] = ...
     oneKernelCondStrct.right = oneCellStrct;
     oneKernelCondStrct.sum = oneCellStrct;
     oneKernelCondStrct.diff = oneCellStrct;
+    oneKernelCondStrct.corr = oneCellStrct;
     
     % use oneKernelCondStrct to compose full kernels struct
     kernels.fFwdVel = oneKernelCondStrct;
@@ -115,6 +118,7 @@ function [kernels, kernelParams, autoCorrParams, autoCorr] = ...
     autoCorr.right = oneVarACStrct;
     autoCorr.sum = oneVarACStrct;
     autoCorr.diff = oneVarACStrct;
+    autoCorr.corr = oneVarACStrct;
     autoCorr.FwdVel = oneVarACStrct;
     autoCorr.YawVel = oneVarACStrct;
     autoCorr.SlideVel = oneVarACStrct;
