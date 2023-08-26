@@ -112,6 +112,13 @@ function computeSmoFictrac2P(pDataPath, sigmaPos, sigmaVel)
         % copy over dropInd from fictrac
         fictracSmo.dropInd = fictrac.dropInd;
 
+        % copy over move/not move info from fictrac
+        fictracSmo.moveLog = fictrac.moveLog;
+        fictracSmo.moveStartInd = fictrac.moveStartInd;
+        fictracSmo.moveEndInd = fictrac.moveEndInd;
+        fictracSmo.moveStartTimes = fictrac.moveStartTimes;
+        fictracSmo.moveEndTimes = fictrac.moveEndTimes;
+
         % add bias info to fictracSmo output struct
         fictracSmo.angVelBias = angVelBias;
         fictracSmo.slideVelBias = slideVelBias;
