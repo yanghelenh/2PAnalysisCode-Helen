@@ -3,10 +3,10 @@
 close all
 clearvars
 
-dataPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190927_moveCond';
+dataPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/230911_moveCond';
 figPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/Figures/190924_scatter-heatmap';
 
-cellType = 'g34';
+cellType = 'g13';
 
 xDataName = 'yawAngVel';
 yDataName = 'fwdVel';

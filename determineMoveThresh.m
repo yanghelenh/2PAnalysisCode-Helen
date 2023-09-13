@@ -41,6 +41,7 @@
 %
 % UPDATED: 
 %   9/10/19 - HHY
+%   9/11/23 - HHY - replace gaussian smoothing in python with matlab
 %
 
 function determineMoveThresh(pdFile, thresh, minBoutLen, sigmaVel)
@@ -77,31 +78,34 @@ function determineMoveThresh(pdFile, thresh, minBoutLen, sigmaVel)
     % sigma for Gaussian kernel smoothing, in samples
     sigmaSamp = round(sigmaVel * sampRate);
     padLen = 3 * sigmaSamp; % pad length, should be longer than sigma
-    % convert to integers
-    sigmaSamp = int32(sigmaSamp);
-    padLen = int32(padLen);
+%     % convert to integers
+%     sigmaSamp = int32(sigmaSamp);
+%     padLen = int32(padLen);
     
     % forward speed
-    fwdSpdSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
-        abs(fictrac.fwdVel), padLen, sigmaSamp);
-    % convert from python to matlab data format
-    fwdSpdSmo = cell2mat(cell(fwdSpdSmoPy.tolist()));
+%     fwdSpdSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
+%         abs(fictrac.fwdVel), padLen, sigmaSamp);
+%     % convert from python to matlab data format
+%     fwdSpdSmo = cell2mat(cell(fwdSpdSmoPy.tolist()));
+    fwdSpdSmo = gaussSmooth(abs(fictrac.fwdVel), padLen, sigmaSamp);
     % convert forward velocity into deg/sec (from mm/sec)
     fwdSpdSmo = fwdSpdSmo .* fictrac.degPerMM;
     
     % slide speed
-    slideSpdSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
-        abs(fictrac.slideVel), padLen, sigmaSamp);
-    % convert from python to matlab data format
-    slideSpdSmo = cell2mat(cell(slideSpdSmoPy.tolist()));
+%     slideSpdSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
+%         abs(fictrac.slideVel), padLen, sigmaSamp);
+%     % convert from python to matlab data format
+%     slideSpdSmo = cell2mat(cell(slideSpdSmoPy.tolist()));
+    slideSpdSmo = gaussSmooth(abs(fictrac.slideVel), padLen, sigmaSamp);
     % convert forward velocity into deg/sec (from mm/sec)
     slideSpdSmo = slideSpdSmo .* fictrac.degPerMM;    
     
     % yaw speed
-    yawSpdSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
-        fictrac.yawAngSpd, padLen, sigmaSamp);
-    % convert from python to matlab data format
-    yawSpdSmo = cell2mat(cell(yawSpdSmoPy.tolist()));
+%     yawSpdSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
+%         fictrac.yawAngSpd, padLen, sigmaSamp);
+%     % convert from python to matlab data format
+%     yawSpdSmo = cell2mat(cell(yawSpdSmoPy.tolist()));
+    yawSpdSmo = gaussSmooth(fictrac.yawAngSpd, padLen, sigmaSamp);
     
     % sum movement in all three axes and normalize to max
     totSpdDeg = fwdSpdSmo + slideSpdSmo + yawSpdSmo;
@@ -119,11 +123,12 @@ function determineMoveThresh(pdFile, thresh, minBoutLen, sigmaVel)
     totSpdNorm = totSpdDeg ./ maxSpd;
     
     % smooth normalized total speed again
-    totSpdNormSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
-        totSpdNorm, padLen, sigmaSamp);
-    % convert from python to matlab data format
-    totSpdNormSmo = cell2mat(cell(totSpdNormSmoPy.tolist())); 
-    
+%     totSpdNormSmoPy = py.proc_utils.safe_interp_conv_smooth_ball_data(...
+%         totSpdNorm, padLen, sigmaSamp);
+%     % convert from python to matlab data format
+%     totSpdNormSmo = cell2mat(cell(totSpdNormSmoPy.tolist())); 
+    totSpdNormSmo = gaussSmooth(totSpdNorm, padLen, sigmaSamp);
+
     % get total speed, non-smoothed
     totSpd = abs(fictrac.fwdVel).* fictrac.degPerMM + ...
         abs(fictrac.slideVel) .* fictrac.degPerMM + ...
@@ -185,7 +190,7 @@ function determineMoveThresh(pdFile, thresh, minBoutLen, sigmaVel)
     uiwait(f);
     
     % use threshold to get moving/not moving bouts
-    moveLogical = totSpdNormSmo > thresh;
+    moveLogical = totSpdNormSmo' > thresh;
     
     % indicies where fly transitions between moving and not moving
     transInd = find(diff(moveLogical)) + 1;

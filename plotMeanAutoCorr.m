@@ -100,6 +100,6 @@ function f = plotMeanAutoCorr(autoCorr, autoCorrParams, allYLims, ttl, ...
         
     end
     
-    suptitle(ttl);
+    sgtitle(ttl);
     
 end

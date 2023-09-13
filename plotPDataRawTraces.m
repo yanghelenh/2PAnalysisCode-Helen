@@ -10,19 +10,20 @@
 dFFscale = [-1 1];
 fwdVelScale = [-10 40];
 yawVelScale = [-600 600];
-xScale = [65 95];
+xScale = [100 130];
 
 
-%% generate plot
+%% load data
 
 % curDir = pwd;
 % cd(pDataPath()); % go to pData folder
 % 
 % % ask user to select pData file
-% disp('Select a pData file to display.');
-% uPData = uigetfile('*pData.mat');
-% load(uPData);
+disp('Select a pData file to display.');
+uPData = uigetfile('*pData.mat');
+load(uPData);
 
+%% generate plot
 numSubplots = 4;
 
 
@@ -38,21 +39,26 @@ h{1} = subplot(numSubplots, 1, 1);
 plot(img.t(imgStartInd:imgEndInd), img.filtDFF.left(imgStartInd:imgEndInd));
 xlim(xScale);
 ylim(dFFscale);
+ylabel('Left dF/F');
 
 h{2} = subplot(numSubplots, 1, 2);
 plot(img.t(imgStartInd:imgEndInd), img.filtDFF.right(imgStartInd:imgEndInd));
 xlim(xScale);
 ylim(dFFscale);
+ylabel('Right dF/F');
 
 h{3} = subplot(numSubplots, 1, 3);
 plot(fictrac.t(ftStartInd:ftEndInd), fictrac.fwdVel(ftStartInd:ftEndInd));
 xlim(xScale);
 ylim(fwdVelScale);
+ylabel('Forward velocity (mm/s)');
 
 h{4} = subplot(numSubplots, 1, 4);
 plot(fictrac.t(ftStartInd:ftEndInd), fictrac.yawAngVel(ftStartInd:ftEndInd));
 xlim(xScale);
 ylim(yawVelScale);
+ylabel('Yaw velocity (deg/s)');
+xlabel('Time (s)');
 
 
-cd(curDir);
+% cd(curDir);

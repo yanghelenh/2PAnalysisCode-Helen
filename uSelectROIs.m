@@ -51,11 +51,11 @@ function uSelectROIs()
         end
 
         % user draws ROIs, get masks for ROIs - always on ch1
-        roiMasks = drawROIs(meanImageAligned.ch1);
+        roiMasks = drawROIs(meanImgAligned.ch1);
 
         % user determines background (by setting threshold on dF/F
         % of image across space
-        bkMask = selectBackground(meanImageAligned.ch1);
+        bkMask = selectBackground(meanImgAligned.ch1);
 
         numChannels = numel(fieldnames(meanImgAligned));
         
@@ -73,12 +73,12 @@ function uSelectROIs()
             % plot dF/F for each ROI
             displayRawSignals(frameStartTimes, avSignal.(channelName), ...
                 bksSignal.(channelName), roiMasks, ...
-                meanImageAligned.(channelName))
+                meanImgAligned.(channelName))
         end
 
         % save new variables into imDat.mat
         save('imDat.mat', 'unalignedSeries', 'alignedSeries', ...
-            'meanImageAligned', 'trialPath', 'tifFileName', ...
+            'meanImgAligned', 'trialPath', 'tifFileName', ...
             'frameStartTimes', 'frameEndTimes', 'frameTimingError', ...
             'roiMasks', 'bkMask', 'avSignal', 'bksSignal', '-v7.3');
         disp('Saved!');

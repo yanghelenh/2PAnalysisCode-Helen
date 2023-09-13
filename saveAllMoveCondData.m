@@ -11,12 +11,15 @@
 %   9/27/19 - run again after acceleration added to pData, save in
 %       190927_moveCond folder
 
-datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190927_moveCond';
+% datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190927_moveCond';
+datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/230911_moveCond';
 
 vars = {'Exclude', 'CellType'};
 
-allCellTypes = {'a01', 'a02', 'b05', 'b06', 'g13', 'g14', 'g15', 'g16', ...
-    'g31', 'g34', 'p05', 'p09', 'p11', 'p12', 'p18', 'p32'};
+% allCellTypes = {'a01', 'a02', 'b05', 'b06', 'g13', 'g14', 'g15', 'g16', ...
+%     'g31', 'g34', 'p05', 'p09', 'p11', 'p12', 'p18', 'p32'};
+
+allCellTypes = {'g13'};
 
 % parameters for computing moveStart and moveEnd windows
 tPre = 0.25; % how much calcium precedes behavior, in sec

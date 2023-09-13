@@ -61,6 +61,8 @@
 % UPDATED: 
 %   8/27/19 - HHY
 %   9/4/19 - HHY - flips left/right assignment for head inverted prep
+%   9/11/23 - HHY - replaces python gaussian smoothing with MATLAB
+%
 
 function computePData_trial(trialPath)
 
@@ -137,16 +139,21 @@ function computePData_trial(trialPath)
             dat = dFF.(dFFfieldNames{i});
 
             % run light smoothing by convolving with gaussian kernel
-            lightPySmo = py.proc_utils.safe_interp_conv_smooth_ball_data(...
-                dat, img.filtParams.padLen, img.filtParams.sigma);
+            lightPySmo = gaussSmooth(dat, img.filtParams.padLen, ...
+                img.filtParams.sigma);
+            
+%             lightPySmo = py.proc_utils.safe_interp_conv_smooth_ball_data(...
+%                 dat, img.filtParams.padLen, img.filtParams.sigma);
     %         lightSmo = cell2mat(cell(lightPySmo.tolist()));
 
             % run gaussian process smoothing
-            gpPySmo = py.gp_smooth.gp_smooth(lightPySmo, ...
-                img.filtParams.gpRatio, img.filtParams.priorStdDev);
-            gpSmo = cell2mat(cell(gpPySmo.tolist()));
+%             gpSmo = gaussSmooth(lightPySmo, img.filtParams.gpRatio, ...
+%                 img.filtParams.priorStdDev);
+%             gpPySmo = py.gp_smooth.gp_smooth(lightPySmo, ...
+%                 img.filtParams.gpRatio, img.filtParams.priorStdDev);
+%             gpSmo = cell2mat(cell(gpPySmo.tolist()));
 
-            filtDFF.(dFFfieldNames{i}) = gpSmo;
+            filtDFF.(dFFfieldNames{i}) = lightPySmo;
         end
               
         % save imaging data into struct

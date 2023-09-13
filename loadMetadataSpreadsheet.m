@@ -27,7 +27,8 @@ function metaDat = loadMetadataSpreadsheet()
     
     % change options to import relevant metadata (exclude freeform comments
     %  fields) in correct format
-    opts.SelectedVariableNames = opts.VariableNames([1:11, 13:20]);
+%     opts.SelectedVariableNames = opts.VariableNames([1:11, 13:20]);
+    opts.SelectedVariableNames = opts.VariableNames([1:12, 14]);
     
     opts = setvartype(opts,'Age',{'char'}); 
     opts = setvaropts(opts,'Exclude','FillValue',0);

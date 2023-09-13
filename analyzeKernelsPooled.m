@@ -9,8 +9,8 @@
 %   8/29/19
 %   9/4/19 - autocorrelation computation now working
 
-datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/190904_kernels-autoCorr';
-figPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/Figures/190904_kernels-autoCorr';
+datPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/AnalyzedData/230911_kernels-autoCorr';
+figPath = '/Users/hyang/Dropbox (HMS)/2PAnalysis-Helen/Figures/230911_kernels-autoCorr';
 
 vars = {'Exclude', 'CellType'};
 
@@ -23,8 +23,10 @@ kernelParams.sampRate = 100;
 
 autoCorrParams.maxLag = 3;
 
-allCellTypes = {'a01', 'a02', 'b05', 'b06', 'g13', 'g14', 'g15', 'g16', ...
-    'g31', 'g34', 'p05', 'p09', 'p11', 'p12', 'p18', 'p32'};
+% allCellTypes = {'a01', 'a02', 'b05', 'b06', 'g13', 'g14', 'g15', 'g16', ...
+%     'g31', 'g34', 'p05', 'p09', 'p11', 'p12', 'p18', 'p32'};
+
+allCellTypes = {'a02'};
 
 % load y axis scale and labels; variables: yScale, yLabels, yScaleAllDeg,
 % yLabelsAllDeg

@@ -123,6 +123,6 @@ function f = plotMeanKernels(kernels, kernelParams, allYLims, ttl, ...
         
     end
     
-    suptitle(ttl);
+    sgtitle(ttl);
     
 end
