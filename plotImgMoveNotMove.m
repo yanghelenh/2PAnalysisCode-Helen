@@ -18,7 +18,7 @@
 % UPDATED:
 %   8/30/23 - HHY
 %
-function p = plotImgMoveNotMove(datDir)
+function plotImgMoveNotMove(datDir, yScale)
     % prompt user to select moveCondPairData() files
     [thisFileName, datPath] = uigetfile('*.mat', ...
         'Select output file', datDir, 'MultiSelect', 'off');
@@ -88,13 +88,14 @@ function p = plotImgMoveNotMove(datDir)
 
     % label y-axis
     ylabel('Sum dF/F');
+    ylim(yScale);
 
-    numFlies
-
-    % get stats
-    diffAllFlies = allFliesAvg(:,1) - allFliesAvg(:,2);
-
-    [~,p] = ttest(diffAllFlies);
-    p
+%     numFlies
+% 
+%     % get stats
+%     diffAllFlies = allFliesAvg(:,1) - allFliesAvg(:,2);
+% 
+%     [~,p] = ttest(diffAllFlies);
+%     p
 
 end

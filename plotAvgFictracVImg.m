@@ -14,19 +14,20 @@
 %   xRange - range of x values to plot and bin across. As 2 element vector 
 %       for start and end
 %   minBinCount - minimum number of points per fly per bin
-%   norm0Vel - boolean for whether to normalize each fly to the value of
-%       the bin containing vel = 0
+%   normMean - boolean for whether to normalize each fly to the mean value
+%       of FicTrac param
+%   yScale - 2 element vector for y scale (FicTrac)
 %
 % OUTPUTS:
 %   none, but generates plot
 %
-% CREATED: 8/29/23 - HHY
+% CREATED: 9/27/23 - HHY
 %
 % UPDATED:
-%   8/29/23 - HHY
+%   9/29/23 - HHY
 %
 function plotAvgFictracVImg(whichImg, whichFictrac, datDir, avg, ...
-    indivFlies, numBins, xRange, minBinCount, norm0Vel)
+    indivFlies, numBins, xRange, minBinCount, normMean, yScale)
 
     % prompt user to select moveCondPairData() files
     [thisFileName, datPath] = uigetfile('*.mat', ...
@@ -93,8 +94,10 @@ function plotAvgFictracVImg(whichImg, whichFictrac, datDir, avg, ...
         end
 
         % if we're expressing the curve as relative to the value at vel = 0
-        if norm0Vel
-            allFliesAvg(i,:) = allFliesAvg(i,:) - allFliesAvg(i,zeroBinInd);
+        if normMean
+            thisFly = allFliesAvg(i,:);
+            thisFly(isnan(thisFly)) = [];
+            allFliesAvg(i,:) = allFliesAvg(i,:) - mean(thisFly);
         end
     end
 
@@ -111,6 +114,7 @@ function plotAvgFictracVImg(whichImg, whichFictrac, datDir, avg, ...
     if (strcmpi(avg,'mean'))
 
         for i = 1:size(allFliesAvg,2)
+%             thisBin = allFliesAvg(:,i);
             thisBin = allFliesAvg(~isnan(allFliesAvg(:,i)),i);
             totAvg(i) = mean(thisBin);
             totErr(i) = std(thisBin) / sqrt(length(thisBin));
@@ -127,17 +131,21 @@ function plotAvgFictracVImg(whichImg, whichFictrac, datDir, avg, ...
 %     plot_err_patch_v2(binMids, totAvg, totErr,...
 %         [0 0.4470 0.7410],[0.3010 0.7450 0.9330]);
 
-    plot_err_patch_v2(binMids, totAvg, totErr,...
-        [0 0 0],[0.5 0.5 0.5]);
+%     plot_err_patch_v2(binMids, totAvg, totErr,...
+%         [0 0 0],[0.5 0.5 0.5]);
+
+    plot(binMids, totAvg, 'Color','k','LineWidth',2);
 
     % plot individual flies if flagged, black lines
     if (indivFlies)
-        plot(binMids,allFliesAvg','k');
+        plot(binMids,allFliesAvg');
     end
 
     % ephys param label
     xLblStr = sprintf('%s (dF/F)', whichImg);
     xlabel(xLblStr);
+    xlim(xRange);
 
     ylabel(whichFictrac);
+    ylim(yScale);
 end
