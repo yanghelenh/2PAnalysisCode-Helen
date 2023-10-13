@@ -26,7 +26,7 @@ autoCorrParams.maxLag = 3;
 % allCellTypes = {'a01', 'a02', 'b05', 'b06', 'g13', 'g14', 'g15', 'g16', ...
 %     'g31', 'g34', 'p05', 'p09', 'p11', 'p12', 'p18', 'p32'};
 
-allCellTypes = {'a02'};
+allCellTypes = {'a01', 'a02', 'b05', 'b06', 'g13'};
 
 % load y axis scale and labels; variables: yScale, yLabels, yScaleAllDeg,
 % yLabelsAllDeg
