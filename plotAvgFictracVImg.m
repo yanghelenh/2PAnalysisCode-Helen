@@ -10,7 +10,7 @@
 %   datDir - path to folder containing moveCondPairData() output files
 %   avg - 'mean' or 'median' for which type of average to plot
 %   indivFlies - plot individual flies or not boolean
-%   numBins - number of bins in x (FicTrac param)
+%   numBins - number of bins in x (img param)
 %   xRange - range of x values to plot and bin across. As 2 element vector 
 %       for start and end
 %   minBinCount - minimum number of points per fly per bin
@@ -141,7 +141,7 @@ function plotAvgFictracVImg(whichImg, whichFictrac, datDir, avg, ...
         plot(binMids,allFliesAvg');
     end
 
-    % ephys param label
+    % img param label
     xLblStr = sprintf('%s (dF/F)', whichImg);
     xlabel(xLblStr);
     xlim(xRange);
